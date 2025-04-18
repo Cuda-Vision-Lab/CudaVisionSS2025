@@ -1,0 +1,4 @@
+BATCH_SIZE: 1024
+Experiment_name: Exp3
+epochs: 100
+lr: 0.0001
