@@ -1,6 +1,8 @@
 
 src/data/*
 src/.DS_Store
-src/Assignment2/src/dataset/*
+src/Assignment2/src/dataset/test/*
+src/Assignment2/src/dataset/train/*
+src/Assignment2/src/dataset/youtube_videos/*
 
 src/Assignment2/.DS_Store
