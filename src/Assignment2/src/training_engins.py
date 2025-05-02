@@ -11,6 +11,9 @@ import torchvision
 from torchvision import datasets, models, transforms
 from torchvision.utils import save_image
 
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 #  Utility functions defined below are adapted from lecture material by Angel Villar Coralles.
 
 def train_epoch(model, train_loader, optimizer, criterion, epoch, device):
@@ -71,7 +74,7 @@ def eval_model(model, eval_loader, criterion, device):
     return accuracy, loss
 
 
-def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader, num_epochs, tboard=None, start_epoch=0):
+def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader, num_epochs, tboard=None, start_epoch=0 ):
     """ Training a model for a given number of epochs"""
     
     train_loss = []
