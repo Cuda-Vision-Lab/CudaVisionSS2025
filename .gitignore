@@ -6,5 +6,5 @@ src/Assignment2/src/dataset/youtube_videos/*.mp4
 
 src/Assignment2/.DS_Store
 src/Assignment2/.DS_Store
-
 .DS_Store
+src/Assignment2/src/models/SwinTransformer/*
