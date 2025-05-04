@@ -3,7 +3,8 @@ import shutil
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-
+import seaborn as sns
+from torchmetrics.classification import ConfusionMatrix
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -18,6 +19,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train_epoch(model, train_loader, optimizer, criterion, epoch, device):
     """ Training a model for one epoch """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     
     loss_list = []
     for i, (images, labels) in enumerate(train_loader):
@@ -51,6 +54,8 @@ def eval_model(model, eval_loader, criterion, device):
     correct = 0
     total = 0
     loss_list = []
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     
     for images, labels in eval_loader:
         images = images.to(device)
@@ -76,6 +81,8 @@ def eval_model(model, eval_loader, criterion, device):
 
 def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader, num_epochs, tboard=None, start_epoch=0 ):
     """ Training a model for a given number of epochs"""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     
     train_loss = []
     val_loss =  []
@@ -96,6 +103,10 @@ def train_model(model, optimizer, scheduler, criterion, train_loader, valid_load
         tboard.add_scalar(f'Accuracy/Valid', accuracy, global_step=epoch+start_epoch)
         tboard.add_scalar(f'Loss/Valid', loss, global_step=epoch+start_epoch)
         
+        for param_group in optimizer.param_groups:
+            lr = param_group['lr']
+            tboard.add_scalar('Learning Rate', lr, epoch)
+            
         # training epoch
         model.train()  # important for dropout and batch norms
         mean_loss, cur_loss_iters = train_epoch(
@@ -118,15 +129,18 @@ def train_model(model, optimizer, scheduler, criterion, train_loader, valid_load
     print(f"Training completed")
     return train_loss, val_loss, loss_iters, valid_acc
 
-def save_model(model, optimizer, epoch, stats):
+# def save_model(model, optimizer, epoch, stats):
+def save_model(model, optimizer, stats):
+
     """ Saving model checkpoint """
     
-    if(not os.path.exists("models")):
-        os.makedirs("models")
-    savepath = f"models/checkpoint_epoch_{epoch}.pth"
+    # savepath = f"models/checkpoint_epoch_{epoch}.pth"
+    savepath = f"models/Swin/checkpoint_{stats['name']}.pth"
 
+    if(not os.path.exists(savepath)):
+        os.makedirs(savepath, exist_ok=True)
     torch.save({
-        'epoch': epoch,
+        # 'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'stats': stats
@@ -138,6 +152,7 @@ def load_model(model, optimizer, savepath):
     """ Loading pretrained checkpoint """
     
     checkpoint = torch.load(savepath)
+    # checkpoint = torch.load(savepath, map_location=torch.device('cpu'))
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint["epoch"]
@@ -186,7 +201,10 @@ def show_grid(data, titles=None):
     plt.show()
 
 def plot(train_loss, val_loss, loss_iters, valid_acc):
-    plt.style.use('seaborn')
+    # Use a valid style that's available in matplotlib
+    # plt.style.use('seaborn')  # This was causing the error
+    plt.style.use('seaborn-v0_8')
+    # plt.style.use('ggplot')  # Using a built-in matplotlib style instead
     fig, ax = plt.subplots(1,3)
     fig.set_size_inches(24,5)
 
@@ -213,4 +231,25 @@ def plot(train_loss, val_loss, loss_iters, valid_acc):
     ax[2].set_ylabel("Accuracy (%)")
     ax[2].set_title(f"Valdiation Accuracy (max={round(np.max(valid_acc),2)}% @ epoch {np.argmax(valid_acc)+1})")
 
+    plt.show()
+
+def plot_cm_matrix(preds,labels,classes):
+    class_names = classes
+    num_classes = len(classes)
+    metric = ConfusionMatrix(task="multiclass", num_classes=num_classes).to(device)
+    cm = metric(preds, labels)
+    
+    if not isinstance(preds, np.ndarray):
+        preds = preds.cpu().numpy()
+    if not isinstance(labels, np.ndarray):
+        labels = labels.cpu().numpy()
+
+    plt.figure(figsize=(8,6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
+    plt.xlabel("Truth", fontsize=14)
+    plt.ylabel("Prediction", fontsize=14)
+    plt.title("Confusion Matrix", fontsize=16)
+    plt.xticks(rotation=45, ha='right')
+    plt.yticks(rotation=0)
+    plt.tight_layout()
     plt.show()
