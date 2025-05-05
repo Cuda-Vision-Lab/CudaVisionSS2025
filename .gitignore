@@ -1,12 +1,6 @@
 
 src/data/*
 src/.DS_Store
-src/Assignment2/src/dataset/test/human/*.jpg
-src/Assignment2/src/dataset/train/human/*.jpg
-src/Assignment2/src/dataset/test/robot/*.jpg
-src/Assignment2/src/dataset/train/robot/*.jpg
-src/Assignment2/src/dataset/youtube_videos/*
-!src/Assignment2/src/dataset/youtube_videos/README.md
 
 src/Assignment2/.DS_Store
 src/Assignment2/.DS_Store
