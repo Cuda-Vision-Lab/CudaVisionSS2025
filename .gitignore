@@ -7,3 +7,4 @@ src/Assignment2/.DS_Store
 .DS_Store
 src/Assignment2/src/models/SwinTransformer/*
 src/Assignment2/src/dataset/youtube_videos/*
+src/Assignment3/data/MNIST/*
