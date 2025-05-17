@@ -63,7 +63,7 @@ def eval_model(model, eval_loader, criterion, device):
     return accuracy, loss
 
 
-def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader, num_epochs):
+def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader, num_epochs, device):
     """ Training a model for a given number of epochs"""
     
     train_loss = []
