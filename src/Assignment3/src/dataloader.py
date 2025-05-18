@@ -7,7 +7,6 @@ from PIL import Image
 from torch.utils.data import Dataset
 import random
 import re
-from transformations import get_train_transforms
 
 
 class KTHActionDataset(Dataset):
@@ -60,7 +59,7 @@ class KTHActionDataset(Dataset):
         frame_files = frame_files[start_idx : start_idx+self.max_frames]
 
         for frame in frame_files:
-            print(frame)
+            # print(frame)
             frame_path = os.path.join(seq_dir, frame)
             frame = Image.open(frame_path).convert('L')  # Grayscale
             frame = frame.resize(self.img_size)
