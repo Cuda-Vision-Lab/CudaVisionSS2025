@@ -1,22 +1,22 @@
 import random
 from torchvision import transforms
 
-# class RandomTemporalSampling: ---> Good to use but does not preserve the tensor shape!
-#     """
-#     Randomly sample frames from the sequence with different step sizes.
+class RandomTemporalSampling: #---> Good to use but does not preserve the tensor shape!
+    """
+    Sample every other frame from the sequence, effectively halving the number of frames.
     
-#     Args:
-#         p (float): probability of applying the sampling. Default: 0.5
-#     """
-#     def __init__(self, p=0.5):
-#         self.p = p
+    Example:
+        Given a sequence of 40 frames, it will return 20 frames.
+    """
+    def __init__(self, p=0.5):
+        # Parameter p is kept for compatibility, but not used anymore
+        pass
         
-#     def __call__(self, frames):
-#         if random.random() < self.p:
-#             step = random.choice([1, 2])
-#             if step > 1 and frames.size(0) > step:
-#                 return frames[::step]
-#         return frames
+    def __call__(self, frames):
+        # Always use step size 2 if there are enough frames
+        if frames.size(0) > 2:
+            return frames[::2]
+        return frames
 
 class RandomTemporalReverse:
     """
@@ -44,6 +44,14 @@ def get_train_transforms():
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(25),
         # Temporal augmentations
+        RandomTemporalSampling(p=1),
         RandomTemporalReverse(p=0.3),
     ])
 
+def get_test_transforms():
+    """
+    Returns the composition of transforms for testing.
+    """
+    return transforms.Compose([
+        RandomTemporalSampling(p=1)
+    ])
