@@ -15,7 +15,7 @@ class RandomTemporalSampling: #---> Good to use but does not preserve the tensor
     def __call__(self, frames):
         # Always use step size 2 if there are enough frames
         if frames.size(0) > 2:
-            return frames[::2]
+            return frames[::4]
         return frames
 
 class RandomTemporalReverse:
