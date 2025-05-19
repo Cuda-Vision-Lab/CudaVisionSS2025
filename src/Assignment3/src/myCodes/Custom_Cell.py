@@ -12,7 +12,7 @@ from torchvision import datasets, models, transforms
 
 class ConvLSTMCell(nn.Module):
 
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_size,kernel_size=3,padding=1, bias=True):
         """
         Initialize ConvLSTM cell.
 
@@ -35,6 +35,34 @@ class ConvLSTMCell(nn.Module):
         
         # Linear layer to compute all gates at once
         # Note: 4 * hidden_size for i, f, o, g (input, forget, output, candidate)
+        
+        self.f_t = nn.Conv1d(in_channels=input_size + hidden_size,
+        out_channels=hidden_size,  # Matches hidden state dim
+        kernel_size=kernel_size,
+        padding=padding,
+        bias=bias # To maintain spatial dims
+        )
+        self.i_t =nn.Conv1d(in_channels=input_size + hidden_size,
+        out_channels=hidden_size,  # Matches hidden state dim
+        kernel_size=kernel_size,
+        padding=padding,
+        bias=bias # To maintain spatial dims
+        )
+
+        self.c_hat_t =nn.Conv1d(in_channels=input_size + hidden_size,
+        out_channels=hidden_size,  # Matches hidden state dim
+        kernel_size=kernel_size,
+        padding=padding,
+        bias=bias # To maintain spatial dims
+        )
+        
+        self.o_t = nn.Conv1d(in_channels=input_size + hidden_size,
+        out_channels=hidden_size,  # Matches hidden state dim
+        kernel_size=kernel_size,
+        padding=padding,
+        bias=bias # To maintain spatial dims
+        )
+
         self.linear = nn.Linear(input_size + hidden_size, 4 * hidden_size)
 
     def forward(self, input_tensor, cur_state):
@@ -46,18 +74,17 @@ class ConvLSTMCell(nn.Module):
         gates = self.linear(combined)  # Shape: (batch, 4 * hidden_size)
         
         # Split into input, forget, output, and candidate gates
-        cc_i, cc_f, cc_o, cc_g = gates.chunk(4, dim=1)  # Each shape: (batch, hidden_size)
+        #cc_i, cc_f, cc_o, cc_g = gates.chunk(4, dim=1)  # Each shape: (batch, hidden_size)
         
-
-        i = torch.sigmoid(cc_i)
-        f = torch.sigmoid(cc_f)
-        o = torch.sigmoid(cc_o)
-        g = torch.tanh(cc_g)
-
-        c_next = f * c_cur + i * g
-        h_next = o * torch.tanh(c_next)
-
-        return h_next, c_next
+        f_t=torch.sigmoid(self.f_t(combined).T)
+        i_t=torch.sigmoid(self.i_t(combined).T)
+        c_hat_t=torch.tanh(self.c_hat_t(combined).T)
+        o_t=torch.sigmoid(self.o_t(combined).T)
+        
+        c_t=f_t*c_cur+i_t*c_hat_t
+        h_t=o_t*torch.tanh(c_t)
+        
+        return h_t, c_t
 
     def init_hidden(self, batch_size, image_size):
         height, width = image_size

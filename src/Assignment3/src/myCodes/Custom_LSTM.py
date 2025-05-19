@@ -191,8 +191,14 @@ class LSTMWithCustomCell(nn.Module):
             lstm_input = embeddings[:, i, :]  # size= (batch_size, emb_dim) 
             # iterating over LSTM Cells
             for j, lstm_cell in enumerate(self.lstm):
-                h[j], c[j] = lstm_cell(lstm_input, (h[j], c[j]))
-                lstm_input = h[j]
+                #try:
+                    if lstm_input.shape[0] != B_SIZE:
+                        continue
+                    #print(lstm_input.shape)
+                    h[j], c[j] = lstm_cell(lstm_input, (h[j], c[j]))
+                    lstm_input = h[j]
+                #except:
+                    #lstm_input=lstm_input;
             lstm_out.append(lstm_input)
         lstm_out = torch.stack(lstm_out, dim=1)
             
@@ -225,7 +231,8 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset, 
                                           batch_size=B_SIZE,
                                           shuffle=False)
-
+mmmm=1;
+nnnn=1
 def train_epoch(model, train_loader, optimizer, criterion, epoch, device):
     """ Training a model for one epoch """
     
@@ -234,7 +241,8 @@ def train_epoch(model, train_loader, optimizer, criterion, epoch, device):
     for i, (images, labels) in progress_bar:
         images = images.to(device)
         labels = labels.to(device)
-        
+        mmmm=i;
+        nnnn=(images, labels);
         # Clear gradients w.r.t. parameters
         optimizer.zero_grad()
          
@@ -332,7 +340,6 @@ def train_model(model, optimizer, scheduler, criterion, train_loader, valid_load
     
     print(f"Training completed")
     return train_loss, val_loss, loss_iters, valid_acc
-
 
 def smooth(f, K=5):
     """ Smoothing a function using a low-pass filter (mean) of size K """
