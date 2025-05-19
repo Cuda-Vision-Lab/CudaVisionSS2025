@@ -59,6 +59,7 @@ def eval_model(model, eval_loader, criterion, device):
     # Total correct predictions and loss
     accuracy = correct / total * 100
     loss = np.mean(loss_list)
+    # loss = torch.tensor(loss_list).mean().cpu().item()  # Ensure tensor is on CPU
     
     return accuracy, loss
 
