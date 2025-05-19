@@ -1,0 +1,13 @@
+batch_size: 32
+emb_dim: 128
+exp_num: 1
+hidden_dim: 128
+lr: 0.001
+max_frames: 80
+model_name: LSTMCell
+num_epochs: 60
+num_layers: 4
+scheduler: StepLR
+slicing_step: 8
+use_pretrained_encoder: false
+use_scheduler: false
