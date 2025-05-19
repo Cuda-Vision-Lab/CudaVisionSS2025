@@ -56,7 +56,9 @@ class KTHActionDataset(Dataset):
         '''
         total_frames = len(os.listdir(seq_dir))
         start_idx = random.randint(0, total_frames-self.max_frames)
+        # frame_files = frame_files[start_idx : start_idx+self.max_frames:10]
         frame_files = frame_files[start_idx : start_idx+self.max_frames]
+
 
         for frame in frame_files:
             # print(frame)
