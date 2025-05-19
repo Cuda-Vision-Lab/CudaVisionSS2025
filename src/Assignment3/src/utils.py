@@ -63,9 +63,10 @@ def eval_model(model, eval_loader, criterion, device):
     return accuracy, loss
 
 
-def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader, num_epochs, device):
+def train_model(model, optimizer, scheduler, criterion, train_loader, valid_loader,tboard , num_epochs, device):
     """ Training a model for a given number of epochs"""
     
+    assert tboard is not None, f"Tensorboard must be provided!"
     train_loss = []
     val_loss =  []
     loss_iters = []
@@ -82,14 +83,24 @@ def train_model(model, optimizer, scheduler, criterion, train_loader, valid_load
         valid_acc.append(accuracy)
         val_loss.append(loss)
         
+        tboard.add_scalar(f'Accuracy/Valid', accuracy, epoch)
+        tboard.add_scalar(f'Loss/Valid', loss, epoch)
+        for param_group in optimizer.param_groups:
+            lr = param_group['lr']
+            tboard.add_scalar('Learning Rate', lr, epoch)
+
         # training epoch
         model.train()  # important for dropout and batch norms
         mean_loss, cur_loss_iters = train_epoch(
                 model=model, train_loader=train_loader, optimizer=optimizer,
                 criterion=criterion, epoch=epoch, device=device
             )
-        scheduler.step()
+        if scheduler is not None:
+            scheduler.step()
         train_loss.append(mean_loss)
+
+        tboard.add_scalar(f'Loss/Train', mean_loss, epoch)
+        
         loss_iters = loss_iters + cur_loss_iters
         
         print(f"Epoch {epoch+1}/{num_epochs}")
@@ -97,17 +108,17 @@ def train_model(model, optimizer, scheduler, criterion, train_loader, valid_load
         print(f"    Valid loss: {round(loss, 5)}")
         print(f"    Accuracy: {accuracy}%")
         print("\n")
-        save_model(
-                model=model,
-                optimizer=optimizer,
-                epoch=epoch,
-                stats={
-                    "train_loss": train_loss,
-                    "val_loss": val_loss,
-                    "loss_iters": loss_iters,
-                    "valid_acc": valid_acc,
-                }
-            )
+        # save_model(
+        #         model=model,
+        #         optimizer=optimizer,      
+        #         epoch=epoch,
+        #         stats={
+        #             "train_loss": train_loss,
+        #             "val_loss": val_loss,
+        #             "loss_iters": loss_iters,
+        #             "valid_acc": valid_acc,
+        #         }
+        #     )
     
     print(f"Training completed")
     return train_loss, val_loss, loss_iters, valid_acc
