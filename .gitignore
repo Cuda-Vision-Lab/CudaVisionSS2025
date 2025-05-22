@@ -1,7 +1,7 @@
 
 src/data/*
 src/.DS_Store
-
+*.pyc
 src/Assignment2/.DS_Store
 src/Assignment2/.DS_Store
 .DS_Store
