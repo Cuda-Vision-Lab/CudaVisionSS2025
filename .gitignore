@@ -11,3 +11,4 @@ src/Assignment3/models/*.pth
 src/Assignment3/data/MNIST/*
 src/Assignment3/src/__pycache__/*
 src/Assignment4/data/*
+src/Assignment4/models/*.pth
