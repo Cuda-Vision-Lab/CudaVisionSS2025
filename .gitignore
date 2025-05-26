@@ -13,3 +13,5 @@ src/Assignment3/src/__pycache__/*
 src/Assignment4/data/*
 !src/Assignment4/data/**/.gitkeep
 src/Assignment4/models/*.pth
+!src/Assignment4/data/AFHQ/test/.gitkeep
+!src/Assignment4/data/AFHQ/train/.gitkeep
