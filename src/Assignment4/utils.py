@@ -24,18 +24,18 @@ def count_model_params(model):
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     return num_params
 
-def save_model(model, optimizer, epoch, stats):
+def save_model(model, model_name, optimizer, epoch, stats):
     """ Saving model checkpoint """
     
-    if(not os.path.exists("models")):
-        os.makedirs("models")
-    savepath = f"models/checkpoint_epoch_{epoch}.pth"
+    savepath = f"models/{model_name}/checkpoint_epoch_{epoch}.pth"
+    if(not os.path.exists(savepath)):
+        os.makedirs(savepath, exist_ok=True)
 
     torch.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-        'stats': stats
+        'stats': stats if stats is not None else None
     }, savepath)
     return
 
@@ -197,4 +197,24 @@ def train_model(model, optimizer, scheduler, criterion, train_loader, valid_load
     
     print(f"Training completed")
     return train_loss, val_loss, loss_iters, val_loss_recons, val_loss_kld
+
+def img_vs_recons(model, test_loader, device):
+
+    imgs, _ = next(iter(test_loader)) 
+    model.eval()
+    with torch.no_grad():
+        recons, _ = model(imgs.to(device))
+        fig, ax = plt.subplots(2, 8)
+        fig.set_size_inches(18, 5)
+        for i in range(8):
+            # Denormalize images by multiplying by 0.5 and adding 0.5 (reverse of Normalize([0.5]*3, [0.5]*3))
+            ax[0, i].imshow(imgs[i, 0] * 0.5 + 0.5)
+            ax[0, i].axis("off")
+            ax[1, i].imshow(recons[i, 0] * 0.5 + 0.5)
+            ax[1, i].axis("off")
+
+        ax[0, 3].set_title("Original Image")
+        ax[1, 3].set_title("Reconstruction")
+        plt.tight_layout()
+        plt.show()
 
