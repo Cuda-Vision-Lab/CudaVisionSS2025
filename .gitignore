@@ -15,3 +15,4 @@ src/Assignment4/data/*
 src/Assignment4/models/*.pth
 !src/Assignment4/data/AFHQ/test/.gitkeep
 !src/Assignment4/data/AFHQ/train/.gitkeep
+src/Assignment4/models/*
