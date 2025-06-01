@@ -218,3 +218,18 @@ def img_vs_recons(model, test_loader, device):
         plt.tight_layout()
         plt.show()
 
+
+def compute_stats(dataset, channels = 3):
+    """Computing mean and std of dataset"""
+    mean = torch.zeros(channels)
+    std = torch.zeros(channels)
+    num_samples = 0
+
+    for img, _ in tqdm(dataset):  # img shape: [3, H, W]
+        mean += img.mean(dim=(1, 2))  # Per-channel mean
+        std += img.std(dim=(1, 2))    # Per-channel std
+        num_samples += 1
+
+    mean /= num_samples
+    std /= num_samples
+    return mean, std
