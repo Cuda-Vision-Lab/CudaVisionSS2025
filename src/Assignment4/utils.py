@@ -233,3 +233,9 @@ def compute_stats(dataset, channels = 3):
     mean /= num_samples
     std /= num_samples
     return mean, std
+
+def get_activation(act_name):
+    """ Gettign activation given name """
+    assert act_name in ["ReLU", "Sigmoid", "Tanh"]
+    activation = getattr(nn, act_name)
+    return activation()
