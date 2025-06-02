@@ -331,7 +331,8 @@ def plot_reconstructed(model, xrange=(-3, 3), yrange=(-2, 2), N=12):
             
             # Passing through the decoder 
             z = model.decoder_input(z)
-            z = z.view(-1, 256, 4, 4)  # Reshape to match decoder input
+            enc_output_shape, _ = compute_encoder_output_size(64, (3, 64, 64), model)
+            z = z.view(-1, *enc_output_shape)  # Reshape to match decoder input
             
             # Getting recons
             x_hat = model.decoder(z)
