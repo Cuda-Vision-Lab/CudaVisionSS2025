@@ -239,3 +239,11 @@ def get_activation(act_name):
     assert act_name in ["ReLU", "Sigmoid", "Tanh"]
     activation = getattr(nn, act_name)
     return activation()
+
+def get_dropout(drop_p):
+    """ Getting a dropout layer """
+    if(drop_p):
+        drop = nn.Dropout(p=drop_p)
+    else:
+        drop = nn.Identity()
+    return drop
