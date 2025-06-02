@@ -504,8 +504,8 @@ def getTensorboardWriter(params):
     shutil.rmtree(TBOARD_LOGS)
     return SummaryWriter(TBOARD_LOGS)
 
-def compute_image_size(in_size, kernel_size, padding, stride):
+def compute_image_size(img_size, kernel_size, padding, stride):
     """
     Compute the output size of a convolutional layer given the input size, kernel size, padding, and stride.
     """
-    return (in_size - kernel_size + 2 * padding) // stride + 1
+    return (img_size - kernel_size + 2 * padding) // stride + 1
