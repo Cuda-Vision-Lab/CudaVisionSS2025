@@ -496,9 +496,16 @@ def get_dropout(drop_p):
     else:
         drop = nn.Identity()
     return drop
-def reparameterize(mu, log_var):
-    """ Reparametrization trick"""
-    std = torch.exp(0.5*log_var)  # we can also predict the std directly, but this works best
-    eps = torch.randn_like(std)  # random sampling happens here
-    z = mu + std * eps
-    return z
+
+def getTensorboardWriter(params):
+    TBOARD_LOGS = os.path.join(*params)
+    if not os.path.exists(TBOARD_LOGS):
+        os.makedirs(TBOARD_LOGS)
+    shutil.rmtree(TBOARD_LOGS)
+    return SummaryWriter(TBOARD_LOGS)
+
+def compute_image_size(in_size, kernel_size, padding, stride):
+    """
+    Compute the output size of a convolutional layer given the input size, kernel size, padding, and stride.
+    """
+    return (in_size - kernel_size + 2 * padding) // stride + 1
