@@ -1,0 +1,9 @@
+batch_size: 64
+exp: '3'
+lambda_kld: 0.01
+latent_dim: 64
+lr: 0.001
+model_name: CVAE
+num_epochs: 50
+scheduler: ReduceLROnPlateau
+use_scheduler: true
