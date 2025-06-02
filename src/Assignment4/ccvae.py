@@ -13,12 +13,10 @@ class CCVAE(nn.Module):
         # Encoder
         self.encoder = self.make_encoder()
         
-        # Fully connected layers for mu and sigma
-        # Added num_classes to account for class conditioning
+        # Adding num_classes to account for class conditioning
         self.fc_mu = nn.Linear(2048 + num_classes, latent_dim)
         self.fc_sigma = nn.Linear(2048 + num_classes, latent_dim)
         
-        # Decoder input layer (projection layer)
         # Takes latent vector and class embedding
         self.decoder_input = nn.Sequential(
             nn.Linear(latent_dim + num_classes, 2048),
@@ -91,7 +89,6 @@ class CCVAE(nn.Module):
         # Concatenate encoded image with class embedding
         x_c = torch.cat([x_encoded, c_onehot], dim=1)
         
-        # Get mu and log_var
         mu = self.fc_mu(x_c)
         log_var = self.fc_sigma(x_c)
         
