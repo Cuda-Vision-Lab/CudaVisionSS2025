@@ -466,3 +466,33 @@ def vis_latent(test_loader, model, test_dataset):
     display_projections(pca_latents[:N], labels[:N], ax=ax[1], legend=test_dataset.classes)
     ax[1].set_title("Encoded Representations")
     plt.show()
+
+
+def compute_stats(dataset, channels = 3):
+    """Computing mean and std of dataset"""
+    mean = torch.zeros(channels)
+    std = torch.zeros(channels)
+    num_samples = 0
+
+    for img, _ in tqdm(dataset):  # img shape: [3, H, W]
+        mean += img.mean(dim=(1, 2))  # Per-channel mean
+        std += img.std(dim=(1, 2))    # Per-channel std
+        num_samples += 1
+
+    mean /= num_samples
+    std /= num_samples
+    return mean, std
+
+def get_activation(act_name):
+    """ Gettign activation given name """
+    assert act_name in ["ReLU", "Sigmoid", "Tanh"]
+    activation = getattr(nn, act_name)
+    return activation()
+
+def get_dropout(drop_p):
+    """ Getting a dropout layer """
+    if(drop_p):
+        drop = nn.Dropout(p=drop_p)
+    else:
+        drop = nn.Identity()
+    return drop
