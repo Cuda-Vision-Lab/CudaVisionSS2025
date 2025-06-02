@@ -496,3 +496,9 @@ def get_dropout(drop_p):
     else:
         drop = nn.Identity()
     return drop
+def reparameterize(mu, log_var):
+    """ Reparametrization trick"""
+    std = torch.exp(0.5*log_var)  # we can also predict the std directly, but this works best
+    eps = torch.randn_like(std)  # random sampling happens here
+    z = mu + std * eps
+    return z
