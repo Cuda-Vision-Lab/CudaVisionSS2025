@@ -1,0 +1,1 @@
+![Output GIF](output.gif)
