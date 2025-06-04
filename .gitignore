@@ -16,3 +16,9 @@ src/Assignment4/models/*.pth
 !src/Assignment4/data/AFHQ/test/.gitkeep
 !src/Assignment4/data/AFHQ/train/.gitkeep
 src/Assignment4/models/*
+src/Assignment4/?xecu?ed*
+src/Assignment4/training_kld*
+src/Assignment4/gif.py
+src/Assignment4/ccvae.ipynb
+src/Assignment4/model.py
+src/Assignment4/cvae.py
