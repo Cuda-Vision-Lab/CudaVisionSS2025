@@ -1,1 +1,3 @@
-![Output GIF](output.gif)
+<div align="center">
+  <img src="output.gif" alt="Output GIF">
+</div>
