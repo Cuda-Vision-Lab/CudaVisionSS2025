@@ -15,7 +15,7 @@ from utils import *
 from torch.utils.tensorboard import SummaryWriter
 from cvae import CVAE
 
-def main(config):
+def main(configs):
         
     dataset_root = './data/AFHQ/'
 
@@ -24,7 +24,7 @@ def main(config):
                                         transforms.Normalize([0.5]*3 , [0.5]*3)])
 
 
-    BS = config["batch_size"]
+    BS = configs["batch_size"]
 
     train_dataset = datasets.ImageFolder(root= dataset_root+'train', transform= transform )
     test_dataset = datasets.ImageFolder(root= dataset_root+'test', transform= transform )
@@ -45,15 +45,15 @@ def main(config):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = CVAE().to(device)
+    model = CVAE(latent_dim=configs["latent_dim"]).to(device)
 
     # optimizer = torch.optim.Adam(model.parameters(), lr=3e-3)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4, weight_decay=1e-4)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=configs["lr"], weight_decay=1e-4)
 
     # Use a more gradual learning rate schedule
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=7, factor=0.5, verbose=True)
 
-    model_name = config["model_name"]+config["exp"]
+    model_name = configs["model_name"]+configs["exp"]
     savepath = f"imgs/{model_name}"
     os.makedirs(savepath,exist_ok=True)
 
@@ -65,15 +65,15 @@ def main(config):
 
     train_loss, val_loss, loss_iters, val_loss_recons, val_loss_kld = train_model(
             model=model, 
+            model_name=model_name,
             optimizer=optimizer,
-            scheduler=scheduler if config["use_scheduler"] else None, 
+            scheduler=scheduler if configs["use_scheduler"] else None, 
             criterion=vae_loss_function,
             train_loader=train_loader, 
             valid_loader=test_loader, 
-            num_epochs=config["num_epochs"], 
+            num_epochs=configs["num_epochs"], 
             savepath=savepath,
-            writer=writer,
-            device=device
+            writer=writer
         )
 
 if __name__ == "__main__":
