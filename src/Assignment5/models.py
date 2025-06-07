@@ -72,18 +72,20 @@ class Generator(nn.Module):
     """
     A fully convolutional generator using ReLU activations. 
     Takes as input a latent vector and outputs a fake sample.
-       (B, latent_dim, 1, 1)  --> (B, num_channels, 32, 32)
+       (B, latent_dim, 1, 1)  --> (B, num_channels, 64, 64)
     """
-    def __init__(self, latent_dim=128, num_channels=1, base_channels=32):
+    def __init__(self, latent_dim=128, num_channels=3, base_channels=64):
         """ Model initializer """
         super().__init__()
 
         layers = []
-        for i in range(4):
+        for i in range(5):
             layers.append(
                 ConvTransposeBlock(
-                        in_channels=latent_dim if i == 0 else base_channels * 2 ** (3-i+1),
-                        out_channels=base_channels * 2 ** (3-i),
+                        # in_channels=latent_dim if i == 0 else base_channels * 2 ** (3-i+1),
+                        # out_channels=base_channels * 2 ** (3-i),
+                        in_channels=latent_dim if i == 0 else base_channels * 2 ** (5-i),
+                        out_channels=base_channels * 2 ** (4-i),
                         kernel_size=4,
                         stride=1 if i == 0 else 2,
                         add_norm=True,
@@ -113,42 +115,42 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     """ A fully convolutional discriminator using LeakyReLU activations. 
     Takes as input either a real or fake sample and predicts its autenticity.
-       (B, num_channels, 32, 32)  -->  (B, 1, 1, 1)
+       (B, num_channels, 64, 64)  -->  (B, 1, 1, 1)
     """
-    def __init__(self, in_channels=1, out_dim=1, base_channels=32, dropout=0.3):
+    def __init__(self, in_channels=3, out_dim=1, base_channels=64, dropout=0.3):
         """ Module initializer """
         super().__init__()  
         
         layers = []
-        for i in range(4):
+        for i in range(5):  # 5 layers to go from 64x64 -> 32x32 -> 16x16 -> 8x8 -> 4x4 -> 2x2
             layers.append(
                 ConvBlock(
-                        in_channels=in_channels if i == 0 else base_channels * 2 ** i,
-                        out_channels=base_channels * 2 ** (i + 1),
-                        kernel_size=4,
-                        add_norm=True,
-                        activation="LeakyReLU",
-                        dropout=dropout,
-                        stride=2
-                    )
+                    in_channels=in_channels if i == 0 else base_channels * 2 ** i,
+                    out_channels=base_channels * 2 ** (i + 1),
+                    kernel_size=4,
+                    stride=2,
+                    add_norm=True,
+                    activation="LeakyReLU",
+                    dropout=dropout
                 )
-        layers.append(
-                ConvBlock(
-                        in_channels=base_channels * 16,
-                        out_channels=out_dim,
-                        kernel_size=4,
-                        stride=4,
-                        add_norm=False,
-                        activation="Sigmoid"
-                    )
-                )
+            )
         
+        # 2x2 -> 1x1. No padding, normal conv2d
+        layers.append(
+            nn.Sequential(
+                nn.Conv2d(in_channels=base_channels * 2 ** 5, 
+                          out_channels=out_dim, 
+                          kernel_size=2, 
+                          stride=2, 
+                          padding=0),
+                nn.Sigmoid()
+            )
+        )
         self.model = nn.Sequential(*layers)
-        return
-      
+        
     def forward(self, x):
         """ Forward pass """
-        y = self.model(x)
+        y = self.model(x) 
         return y
     
 class Trainer:
