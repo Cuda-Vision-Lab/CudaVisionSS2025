@@ -70,21 +70,31 @@ class ConvTransposeBlock(nn.Module):
 
 class Generator(nn.Module):
     """
-    A fully convolutional generator using ReLU activations. 
-    Takes as input a latent vector and outputs a fake sample.
-       (B, latent_dim, 1, 1)  --> (B, num_channels, 64, 64)
+    Fully convolutional generator for both conditional and unconditional modes.
+    Unconditional mode: (B, latent_dim, 1, 1) --> (B, num_channels, 64, 64)
+    Conditional mode: (B, latent_dim + num_classes, 1, 1) --> (B, num_channels, 64, 64)
     """
-    def __init__(self, latent_dim=128, num_channels=3, base_channels=64):
+    def __init__(self, latent_dim=128, num_channels=3, base_channels=64, num_classes=3, conditioned=False):
         """ Model initializer """
         super().__init__()
 
+        self.latent_dim = latent_dim
+        self.conditioned = conditioned  
+
+        if conditioned:
+            # Embedding layer for class labels (used in conditional mode)
+            self.label_embedding = nn.Embedding(num_classes, num_classes)
+            self.num_classes = num_classes
+        
         layers = []
+        in_channels= latent_dim if not conditioned else latent_dim + num_classes
+
         for i in range(5):
             layers.append(
                 ConvTransposeBlock(
                         # in_channels=latent_dim if i == 0 else base_channels * 2 ** (3-i+1),
                         # out_channels=base_channels * 2 ** (3-i),
-                        in_channels=latent_dim if i == 0 else base_channels * 2 ** (5-i),
+                        in_channels=in_channels if i == 0 else base_channels * 2 ** (5-i),
                         out_channels=base_channels * 2 ** (4-i),
                         kernel_size=4,
                         stride=1 if i == 0 else 2,
@@ -106,27 +116,52 @@ class Generator(nn.Module):
         self.model = nn.Sequential(*layers)
         return
     
-    def forward(self, x):
-        """ Forward pass through generator """
+    def forward(self, x, labels=None):
+        """ Forward pass through generator 
+        Args:
+            x: latent vectors [B, latent_dim, 1, 1]
+            labels: class labels [B] (optional, only used in conditional mode)
+        """
+        if labels is not None:
+            # Conditional mode
+            embedded_labels = self.label_embedding(labels)  # [B, num_classes]
+            embedded_labels = embedded_labels.unsqueeze(-1).unsqueeze(-1)  # [B, num_classes, 1, 1]
+            x = torch.cat([x, embedded_labels], dim=1)
+        
+        # Generate image
         y = self.model(x)
         return y
     
 
 class Discriminator(nn.Module):
-    """ A fully convolutional discriminator using LeakyReLU activations. 
-    Takes as input either a real or fake sample and predicts its autenticity.
-       (B, num_channels, 64, 64)  -->  (B, 1, 1, 1)
+    """ A flexible fully convolutional discriminator that can work in both conditional and unconditional modes.
+    Conditional mode: (B, num_channels, 64, 64), (B) --> (B, 1, 1, 1)
+    Unconditional mode: (B, num_channels, 64, 64) --> (B, 1, 1, 1)
     """
-    def __init__(self, in_channels=3, out_dim=1, base_channels=64, dropout=0.3):
+    def __init__(self, in_channels=3, out_dim=1, base_channels=64, dropout=0.3, num_classes=3, conditioned=False):
         """ Module initializer """
         super().__init__()  
         
+        self.conditioned = conditioned
+
+        if self.conditioned:
+            # Embedding layer for class labels (used in conditional mode)
+            self.label_embedding = nn.Embedding(num_classes, 64 * 64)
+            self.num_classes = num_classes
+        
+        # Channel multipliers for each layer (instead of exponential growth---> less parameters in the model)
+        channel_mults = [1, 2, 4, 4, 8]  
+        
         layers = []
-        for i in range(5):  # 5 layers to go from 64x64 -> 32x32 -> 16x16 -> 8x8 -> 4x4 -> 2x2
+        in_channels = in_channels if not conditioned else in_channels + 1  # +1 for label channel
+
+        # channel progression: 3 -> 64 -> 128 -> 256 -> 256 -> 512
+        # spatial dims: 64x64 -> 32x32 -> 16x16 -> 8x8 -> 4x4 -> 2x2
+        for i in range(5):  
             layers.append(
                 ConvBlock(
-                    in_channels=in_channels if i == 0 else base_channels * 2 ** i,
-                    out_channels=base_channels * 2 ** (i + 1),
+                    in_channels=in_channels if i == 0 else base_channels * channel_mults[i-1],
+                    out_channels=base_channels * channel_mults[i],
                     kernel_size=4,
                     stride=2,
                     add_norm=True,
@@ -138,7 +173,7 @@ class Discriminator(nn.Module):
         # 2x2 -> 1x1. No padding, normal conv2d
         layers.append(
             nn.Sequential(
-                nn.Conv2d(in_channels=base_channels * 2 ** 5, 
+                nn.Conv2d(in_channels=base_channels * channel_mults[-1],  # 512 channels
                           out_channels=out_dim, 
                           kernel_size=2, 
                           stride=2, 
@@ -146,22 +181,36 @@ class Discriminator(nn.Module):
                 nn.Sigmoid()
             )
         )
+        
         self.model = nn.Sequential(*layers)
         
-    def forward(self, x):
-        """ Forward pass """
-        y = self.model(x) 
+    def forward(self, x, labels=None):
+        """ Forward pass 
+        Args:
+            x: input images [B, C, H, W]
+            labels: class labels [B] (optional, only used in conditional mode)
+        """
+        if labels is not None:
+            # Conditional mode
+            batch_size = x.shape[0]
+            embedded_labels = self.label_embedding(labels)  # [B, H*W]
+            embedded_labels = embedded_labels.view(batch_size, 1, 64, 64)  # [B, 1, H, W]
+            x = torch.cat([x, embedded_labels], dim=1)
+            
+        y = self.model(x)
         return y
     
 class Trainer:
     """
-    Class for initializing GAN and training it
+    Class for initializing GAN and training it in both conditional and unconditional modes
     """
-    def __init__(self, generator, discriminator, latent_dim=128, writer=None):
+    def __init__(self, generator, discriminator, latent_dim=128, num_classes=3, writer=None, conditioned=False):
         """ Initialzer """
         assert writer is not None, f"Tensorboard writer not set..."
     
         self.latent_dim = latent_dim
+        self.num_classes = num_classes
+        self.conditioned = conditioned
         self.writer = writer 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.generator = generator.to(self.device)
@@ -189,9 +238,12 @@ class Trainer:
         }
         return
         
-    def train_one_step(self, imgs):
+    def train_one_step(self, imgs, labels=None):
         """ 
         Training both models for one optimization step
+        Args:
+            imgs: real images [B, C, H, W]
+            labels: class labels [B] (optional, only for conditional mode)
         """
         self.generator.train()
         self.discriminator.train()
@@ -199,18 +251,20 @@ class Trainer:
         # Sample from the latent distribution
         B = imgs.shape[0]
         latent = torch.randn(B, self.latent_dim, 1, 1).to(self.device)
+        if labels is not None:
+            labels = labels.to(self.device)
         
         # ==== Training Discriminator ====
         self.optim_discriminator.zero_grad()
         # Get discriminator outputs for the real samples
-        prediction_real = self.discriminator(imgs)
+        prediction_real = self.discriminator(imgs, labels)
         # Compute the loss function
         d_loss_real = self.criterion_d_real(prediction_real.view(B))
 
         # Generating fake samples with the generator
-        fake_samples = self.generator(latent)
+        fake_samples = self.generator(latent, labels)
         # Get discriminator outputs for the fake samples
-        prediction_fake_d = self.discriminator(fake_samples.detach())  # why detach?
+        prediction_fake_d = self.discriminator(fake_samples.detach(), labels)  # why detach?
         # Compute the loss function
         d_loss_fake = self.criterion_d_fake(prediction_fake_d.view(B))
         (d_loss_real + d_loss_fake).backward()
@@ -223,7 +277,7 @@ class Trainer:
         # === Train the generator ===
         self.optim_generator.zero_grad()
         # Get discriminator outputs for the fake samples
-        prediction_fake_g = self.discriminator(fake_samples)
+        prediction_fake_g = self.discriminator(fake_samples, labels)
         # Compute the loss function
         g_loss = self.criterion_g(prediction_fake_g.view(B))
         g_loss.backward()
@@ -237,7 +291,21 @@ class Trainer:
         """ Generating a bunch of images using current state of generator """
         self.generator.eval()
         latent = torch.randn(N, self.latent_dim, 1, 1).to(self.device)
-        imgs = self.generator(latent)
+        
+        if self.conditioned:
+            imgs_per_class = [21, 21, 22] # 64 images, 64 is not divisible by 3!
+            num_classes = [0, 1, 2] # 3 classes
+
+            labels = []
+            for n, c in zip(imgs_per_class, num_classes):
+                labels.append(torch.full((n,), c))  # creates [c, c, ..., c] of length n
+
+            labels = torch.cat(labels).to(self.device)
+            imgs = self.generator(latent, labels)
+        else:
+            # Generate images without conditioning
+            imgs = self.generator(latent)
+            
         imgs = imgs * 0.5 + 0.5
         return imgs
         
@@ -250,9 +318,16 @@ class Trainer:
         
         iter_ = 0
         for i in range(N_iters):
-            for real_batch, _ in data_loader:           
+            for batch in data_loader:
+                if self.conditioned:
+                    real_batch, labels = batch
+                    labels = labels.to(self.device)
+                else:
+                    real_batch = batch[0]  # Ignore labels if present
+                    labels = None
+                    
                 real_batch = real_batch.to(self.device)
-                d_loss_real, d_loss_fake, g_loss = self.train_one_step(imgs=real_batch)
+                d_loss_real, d_loss_fake, g_loss = self.train_one_step(imgs=real_batch, labels=labels)
                 d_loss = d_loss_real + d_loss_fake
             
                 # updating progress bar
