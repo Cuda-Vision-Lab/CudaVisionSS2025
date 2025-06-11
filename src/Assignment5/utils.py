@@ -26,7 +26,7 @@ def count_model_params(model):
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     return num_params
 
-def save_model(model, model_name, optimizer, epoch, lambda_kld, stats):
+def save_model(model, model_name, generator_optimizer, discriminator_optimizer, epoch, stats):
     """ Saving model checkpoint """
     
     # Create the directory path first
@@ -34,12 +34,14 @@ def save_model(model, model_name, optimizer, epoch, lambda_kld, stats):
     os.makedirs(save_dir, exist_ok=True)
     
     # Then create the full file path
-    savepath = os.path.join(save_dir, f"checkpoint_KLD_{lambda_kld}_epoch_{epoch}.pth")
+    savepath = os.path.join(save_dir, f"checkpoint_{model_name}_epoch_{epoch}.pth")
 
     torch.save({
         'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
+        'generator_state_dict': model.generator.state_dict(),
+        'discriminator_state_dict': model.discriminator.state_dict(),
+        'optimizer_state_dict_generator': generator_optimizer.state_dict(),
+        'optimizer_state_dict_discriminator': discriminator_optimizer.state_dict(),
         'stats': stats if stats is not None else None
     }, savepath)
     return
