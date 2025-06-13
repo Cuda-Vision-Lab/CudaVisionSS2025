@@ -499,3 +499,10 @@ def get_dropout(drop_p):
     else:
         drop = nn.Identity()
     return drop
+
+
+def compute_image_size(img_size, kernel_size, padding, stride):
+    """
+    Compute the output size of a convolutional layer given the input size, kernel size, padding, and stride.
+    """
+    return (img_size - kernel_size + 2 * padding) // stride + 1
