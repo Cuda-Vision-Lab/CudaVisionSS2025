@@ -204,13 +204,14 @@ class Trainer:
     """
     Class for initializing GAN and training it in both conditional and unconditional modes
     """
-    def __init__(self, generator, discriminator, latent_dim=128, num_classes=3, writer=None, conditioned=False):
+    def __init__(self, generator, discriminator, latent_dim=128, num_classes=3, model_name=None, writer=None, conditioned=False):
         """ Initialzer """
         assert writer is not None, f"Tensorboard writer not set..."
     
         self.latent_dim = latent_dim
         self.num_classes = num_classes
         self.conditioned = conditioned
+        self.model_name = model_name
         self.writer = writer 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.generator = generator.to(self.device)
@@ -348,7 +349,7 @@ class Trainer:
                     imgs = self.generate()
                     grid = torchvision.utils.make_grid(imgs, nrow=8)
                     self.writer.add_image('images', grid, global_step=iter_)
-                    torchvision.utils.save_image(grid, os.path.join(os.getcwd(), "imgs", "training", f"imgs_{iter_}.png"))
+                    torchvision.utils.save_image(grid, os.path.join(os.getcwd(), "imgs", self.model_name, f"imgs_{iter_}.png"))
 
                 iter_ = iter_ + 1 
                 

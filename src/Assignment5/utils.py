@@ -47,16 +47,18 @@ def save_model(model, model_name, generator_optimizer, discriminator_optimizer, 
     return
 
 
-def load_model(model, optimizer, savepath):
+def load_model(model, generator_optimizer, discriminator_optimizer, savepath):
     """ Loading pretrained checkpoint """
     
     checkpoint = torch.load(savepath)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    model.generator.load_state_dict(checkpoint['generator_state_dict'])
+    model.discriminator.load_state_dict(checkpoint['discriminator_state_dict'])
+    generator_optimizer.load_state_dict(checkpoint['optimizer_state_dict_generator'])
+    discriminator_optimizer.load_state_dict(checkpoint['optimizer_state_dict_discriminator'])
     epoch = checkpoint["epoch"]
     stats = checkpoint["stats"]
     
-    return model, optimizer, epoch, stats
+    return model, generator_optimizer, discriminator_optimizer, epoch, stats
 
 
 

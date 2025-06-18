@@ -23,10 +23,10 @@ from torch.utils.tensorboard import SummaryWriter
 
 configs = {   
     "model_name" : "CDCGAN",
-    "exp" : "1",  
+    "exp" : "2",  
     "latent_dim" : 128,
     "batch_size" : 64,
-    "num_epochs" : 50,
+    "num_epochs" : 15,
     "lr" : 1e-3,
     "scheduler" : "ReduceLROnPlateau",
     "use_scheduler" : True,
@@ -93,6 +93,7 @@ model = models.Trainer(generator=generator,
                        discriminator=discriminator, 
                        latent_dim=latent_dim, 
                        writer=writer,
+                       model_name=model_name,
                        conditioned=True)
 
 epoch = configs["num_epochs"]
