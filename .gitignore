@@ -18,3 +18,4 @@ src/Assignment4/model.py
 src/Assignment4/cvae.py
 src/Assignment5/imgs/training/*
 
+src/**/checkpoints/*
