@@ -13,7 +13,7 @@ class SiameseModel(nn.Module):
         super().__init__()
 
         # initialize resnet as backbone for feature extraction
-        self.resnet = models.resnet18(pretrained=True)
+        self.resnet = models.resnet18(weights=ResNet18_Weights.DEFAULT)
         self.resnet.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.resnet.fc = nn.Linear(self.resnet.fc.in_features, emb_dim)
         self.cnn = self.resnet

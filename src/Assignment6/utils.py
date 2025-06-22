@@ -39,7 +39,7 @@ def save_model(model, optimizer, epoch, stats, margin, temperature):
 def load_model(model, optimizer, savepath):
     """ Loading pretrained checkpoint """
     
-    checkpoint = torch.load(savepath, map_location="cpu")
+    checkpoint = torch.load(savepath, map_location="cpu", weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     epoch = checkpoint["epoch"]
@@ -108,7 +108,7 @@ def display_projections(points, labels, ax=None, legend=None):
         idx = np.where(labels == l)
         # Use the label's position in unique_labels to index into legend
         ax.scatter(points[idx, 0], points[idx, 1], label=legend[i], c=COLORS[i % len(COLORS)])
-    ax.legend(loc="best")
+    ax.legend(loc="center left")
 
 
 class NormLayer(nn.Module):
@@ -273,8 +273,8 @@ def plot_TSNE(imgs_flat, embs, labels, legend):
 
 
 def calculate_ARI(imgs_flat, embs, labels):
-    kmeans_imgs = KMeans(n_clusters=10, random_state=0).fit(imgs_flat)
-    kmeans_embs = KMeans(n_clusters=10, random_state=0).fit(embs)    
+    kmeans_imgs = KMeans(n_clusters=10, n_init=10,random_state=0).fit(imgs_flat)
+    kmeans_embs = KMeans(n_clusters=10, n_init=10,random_state=0).fit(embs)    
     ari_imgs = adjusted_rand_score(labels, kmeans_imgs.labels_)
     ari_embs = adjusted_rand_score(labels, kmeans_embs.labels_)
     print(f"Clustering images achieves  ARI={round(ari_imgs*100,2)}%")
@@ -361,3 +361,21 @@ class TripletDataset:
             neg_img = self.transform(neg_img)
             
         return (anchor_img, pos_img, neg_img), (anchor_lbl, pos_lbl, neg_lbl)
+    
+def get_embeddings(model, test_loader, device):
+    imgs_flat = []
+    embs = []
+    labels = []
+    with torch.no_grad():
+        for (anchor, _, _), (lbl,_, _) in test_loader:
+            anchor = anchor.to(device)
+            anchor_emb = model.forward_one(anchor)
+            
+            labels.append(lbl)
+            embs.append(anchor_emb.cpu())
+            imgs_flat.append(anchor.cpu().flatten(1))
+
+    labels = np.concatenate(labels)
+    embs = np.concatenate(embs)
+    imgs_flat = np.concatenate(imgs_flat)
+    return imgs_flat, embs, labels
