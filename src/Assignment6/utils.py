@@ -379,3 +379,9 @@ def get_embeddings(model, test_loader, device):
     embs = np.concatenate(embs)
     imgs_flat = np.concatenate(imgs_flat)
     return imgs_flat, embs, labels
+
+def compute_image_size(img_size, kernel_size, padding, stride):
+    """
+    Compute the output size of a convolutional layer given the input size, kernel size, padding, and stride.
+    """
+    return (img_size - kernel_size + 2 * padding) // stride + 1
