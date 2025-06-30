@@ -237,15 +237,18 @@ def display_projections(points, labels, ax=None, legend=None):
         idx = np.where(labels == l)
         # Use the label's position in unique_labels to index into legend
         ax.scatter(points[idx, 0], points[idx, 1], label=legend[i], c=COLORS[i % len(COLORS)])
+        # ax.scatter(points[idx, 0], points[idx, 1], label=legend[int(l)], c=COLORS[i % len(COLORS)])
     ax.legend(loc="best")
 
 def plot_both(imgs_flat, embs, labels, legend):
     """ Plotting PCA of images and embeddings """
     pca_imgs = PCA(n_components=2).fit_transform(imgs_flat)
     pca_embs = PCA(n_components=2).fit_transform(embs)
-    N = 2000
-    tsne_imgs = TSNE(n_components=2).fit_transform(imgs_flat[:N])
-    tsne_embs = TSNE(n_components=2).fit_transform(embs[:N])
+    
+    # t-SNE transformations (limit to 2000 samples for speed)
+    N_tsne = min(2000, len(labels))
+    tsne_imgs = TSNE(n_components=2).fit_transform(imgs_flat[:N_tsne])
+    tsne_embs = TSNE(n_components=2).fit_transform(embs[:N_tsne])
  
     fig, ax = plt.subplots(2,2)
     fig.set_size_inches(32,16)
@@ -269,9 +272,7 @@ def plot_all(imgs_flat, embs, labels, labels_mask, legend, stats):
 
     visualize_progress(stats["train_loss"], stats["valid_loss"], start=0)
     tsne_embs = plot_both(imgs_flat[labels_mask], embs[labels_mask], labels[labels_mask], legend)
-    # tsne_embs = plot_TSNE(imgs_flat[labels_mask], embs[labels_mask], labels[labels_mask], legend)
 
-    # Get the indices of the filtered data for proper dataset indexing
     filtered_indices = np.where(labels_mask)[0]
     
     return tsne_embs, filtered_indices
@@ -301,7 +302,6 @@ def display_projections_images(points, labels, dataset, ax=None, legend=None, in
     for i, point in enumerate(points):
         xy = [point[0], point[1]]
         
-            # Use indices mapping if provided, otherwise use direct indexing
         dataset_idx = indices[i] if indices is not None else i
         arr_img = dataset[dataset_idx][0][0].permute(1, 2, 0).numpy()
 
@@ -384,7 +384,7 @@ def get_embeddings(model, test_loader, device, simclr=False):
                 imgs_flat.append(anchor.cpu().flatten(1))
 
         else: 
-            for img, lbl in tqdm(test_loader):
+            for img,_, lbl in tqdm(test_loader):
                 imgs = img.to(device)
                 emb = model.backbone(imgs)
                 
@@ -429,10 +429,10 @@ class SimCLRDataset():
     Wrapper to return pairs of augmented images
     """
     
-    def __init__(self, dataset , test=False):
+    def __init__(self, dataset, labels = None , test=False):
         self.dataset = dataset
         self.transform = ContrastiveTransform(test=test)
-
+        self.labels = labels
         # Calculate dimensions for reshaping
         total_pixels = dataset.shape[1] // 3
         self.height = int(total_pixels ** 0.5)  # Assuming square images
@@ -447,7 +447,8 @@ class SimCLRDataset():
         anchor_img = self.dataset[idx].reshape(self.height, self.width, 3)  # Reshape to HxWx3
         
         view1, view2 = self.transform(anchor_img)  # this will call the __call__ method of the ContrastiveTransform class
-        return view1, view2
+        label = self.labels[idx] if self.labels is not None else None
+        return view1, view2 , label
 
 
 def nt_xent_loss(z_i, z_j, temperature=0.1):
