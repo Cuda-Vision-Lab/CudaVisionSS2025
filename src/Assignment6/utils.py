@@ -471,3 +471,10 @@ def nt_xent_loss(z_i, z_j, temperature=0.1):
     # Compute cross entropy loss
     loss = F.cross_entropy(sim_matrix_final, positives_labels, reduction="mean")
     return loss, sim_matrix_vis
+
+
+def compute_image_size(img_size, kernel_size, padding, stride):
+    """
+    Compute the output size of a convolutional layer given the input size, kernel size, padding, and stride.
+    """
+    return (img_size - kernel_size + 2 * padding) // stride + 1
