@@ -44,7 +44,7 @@ def train_siamese(model, margin, temperature, n_iters):
     train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=64, shuffle=True) 
     test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=64, shuffle=False)
 
-    criterion = utils.TripletLoss(margin=margin)
+    criterion = utils.TripletLoss(margin=margin, temperature=temperature)
 
     trainer = utils.Trainer(model=model, criterion=criterion, train_loader=train_loader, valid_loader=test_loader, n_iters=n_iters)
 
