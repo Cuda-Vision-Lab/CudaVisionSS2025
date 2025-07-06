@@ -1,0 +1,16 @@
+model_name: ViT
+batch_size: 32
+num_epochs: 60
+lr: 0.0003
+scheduler: StepLR
+use_scheduler: false
+max_frames: 80
+max_len: 100
+slicing_step: 8
+patch_size: 16
+token_dim: 192
+attn_dim: 192
+num_heads: 4
+mlp_size: 768
+num_tf_layers: 6
+num_classes: 6
