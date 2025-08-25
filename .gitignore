@@ -19,3 +19,5 @@ src/Assignment4/cvae.py
 src/Assignment5/imgs/training/*
 
 src/**/checkpoints/*
+
+.venv/*
