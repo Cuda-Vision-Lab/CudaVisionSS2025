@@ -3,7 +3,12 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset
 from torchvision import io
+from pathlib import Path
 import glob
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] - %(message)s')
 
 class MoviDataset(Dataset):
 
@@ -15,40 +20,73 @@ class MoviDataset(Dataset):
         
         number_of_frames_per_video=24
         
-        self.coord=self.read_files(data_directory,'coords*.pt')
+         # self.coord=self.read_files(data_directory,'coords*.pt')
         
-        self.mask=self.read_files(data_directory,'mask*.pt')
+        # self.mask=self.read_files(data_directory,'mask*.pt')
 
-        self.rgb=self.read_files(data_directory,'rgb*.png')
+        # self.rgb=self.read_files(data_directory,'rgb*.png')
 
-        self.rgb=self.group_by_film(self.rgb, group_size=number_of_frames_per_video)
+        # self.rgb=self.group_by_film(self.rgb, group_size=number_of_frames_per_video)
 
-        self.flow=self.read_files(data_directory, 'flow*.png')
+        # self.flow=self.read_files(data_directory, 'flow*.png')
         
-        self.flow=self.group_by_film(self.flow, group_size= number_of_frames_per_video)
+        # self.flow=self.group_by_film(self.flow, group_size= number_of_frames_per_video)
+        
+        self.rgbs = self.collect_files(data_directory, 'rgb*.png', group_size=24)
+        self.flows = self.collect_files(data_directory, 'flow*.png', group_size=24)
+        self.coords = self.collect_files(data_directory, 'coords*.pt')
+        self.masks = self.collect_files(data_directory, 'mask*.pt')
 
-        print("Data Loaded:\n", f"  Coordinates: {len(self.coord)}", f"  Masks: {len(self.mask)}", f"  RGB videos:  {len(self.rgb)}", f"  Flows:  {len(self.flow)}")
+        assert len(self.rgbs) == len(self.flows) == len(self.coords) == len(self.masks), "Data and annotations need to be of the same size"
 
-    def read_files(self, data_directory, condition):
-
-        retrieved_addresses = sorted(glob.glob(os.path.join(data_directory,condition)))
-        if condition.endswith('png'):
-            retrieved_files = [io.read_image(path=file).to(torch.float32) for file in retrieved_addresses]
-        if condition.endswith('pt'):
-            retrieved_files = [torch.load(file, map_location="cpu") for file in retrieved_addresses]
-         
-        return retrieved_files
-    
-    def group_by_film(self, files, group_size):
-        groups = [torch.stack(files[i:i+group_size]) for i in range(0, len(files), group_size)]
-        return groups
-
-    def __len__(self):
-        return len(self.mask)
+        logging.info(f"{split.upper()} Data Loaded: Coordinates: {len(self.coords)}, Masks: {len(self.masks)}, RGB videos:  {len(self.rgbs)}, Flows:  {len(self.flows)}")
 
     def __getitem__(self, idx):
-        return self.coord[idx], self.mask[idx], self.rgb[idx], self.flow[idx]
+        # return self.coord[idx], self.mask[idx], self.rgb[idx], self.flow[idx]
+ 
+        rgb_paths = self.rgbs[idx]  # list of frame paths for the video frames = idx
+        flow_paths = self.flows[idx]
+          
+        rgbs =  torch.stack([io.read_image(p).to(torch.float32) for p in rgb_paths])
+        flows =  torch.stack([io.read_image(p).to(torch.float32) for p in flow_paths])
+        coords = torch.load(self.coords[idx], map_location="cpu")  # loaded lazily
+        masks = torch.load(self.masks[idx], map_location="cpu")
+        
+        return coords, masks, rgbs, flows
     
+    
+    # def read_files(self, data_directory, condition):
+
+    #     # retrieved_addresses = sorted(glob.glob(os.path.join(data_directory,condition)))
+    #     # if condition.endswith('png'):
+    #     #     retrieved_files = [io.read_image(path=file).to(torch.float32) for file in retrieved_addresses]
+    #     # if condition.endswith('pt'):
+    #     #     retrieved_files = [torch.load(file, map_location="cpu") for file in retrieved_addresses]
+         
+    #     # return retrieved_files
+    #     return sorted(glob.glob(os.path.join(data_directory, condition)))
+    
+    # def group_by_film(self, files, group_size):
+    #     # groups = [torch.stack(files[i:i+group_size]) for i in range(0, len(files), group_size)]
+    #     groups = [files[i:i+group_size] for i in range(0, len(files), group_size)]
+        
+    #     return groups
+    def collect_files(self, data_directory, condition, group_size=None):
+        """
+        Collect files matching a pattern and optionally group them by video.
+        """
+        files = sorted(glob.glob(os.path.join(data_directory, condition)))
+        
+        if group_size:  # group into videos
+            files = [files[i:i+group_size] for i in range(0, len(files), group_size)]
+        
+        return files
+
+
+    def __len__(self):
+        return len(self.masks)
+
+
     def get_video_frame_labels(self, com, bbox, masks, rgbs, flows):
         '''
         outputs 24 entries, each of which corresponds to data of a frame data.
