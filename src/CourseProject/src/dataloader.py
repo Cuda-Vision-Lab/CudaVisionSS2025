@@ -20,18 +20,6 @@ class MoviDataset(Dataset):
         
         number_of_frames_per_video=24
         
-         # self.coord=self.read_files(data_directory,'coords*.pt')
-        
-        # self.mask=self.read_files(data_directory,'mask*.pt')
-
-        # self.rgb=self.read_files(data_directory,'rgb*.png')
-
-        # self.rgb=self.group_by_film(self.rgb, group_size=number_of_frames_per_video)
-
-        # self.flow=self.read_files(data_directory, 'flow*.png')
-        
-        # self.flow=self.group_by_film(self.flow, group_size= number_of_frames_per_video)
-        
         self.rgbs = self.collect_files(data_directory, 'rgb*.png', group_size=24)
         self.flows = self.collect_files(data_directory, 'flow*.png', group_size=24)
         self.coords = self.collect_files(data_directory, 'coords*.pt')
@@ -54,23 +42,6 @@ class MoviDataset(Dataset):
         
         return coords, masks, rgbs, flows
     
-    
-    # def read_files(self, data_directory, condition):
-
-    #     # retrieved_addresses = sorted(glob.glob(os.path.join(data_directory,condition)))
-    #     # if condition.endswith('png'):
-    #     #     retrieved_files = [io.read_image(path=file).to(torch.float32) for file in retrieved_addresses]
-    #     # if condition.endswith('pt'):
-    #     #     retrieved_files = [torch.load(file, map_location="cpu") for file in retrieved_addresses]
-         
-    #     # return retrieved_files
-    #     return sorted(glob.glob(os.path.join(data_directory, condition)))
-    
-    # def group_by_film(self, files, group_size):
-    #     # groups = [torch.stack(files[i:i+group_size]) for i in range(0, len(files), group_size)]
-    #     groups = [files[i:i+group_size] for i in range(0, len(files), group_size)]
-        
-    #     return groups
     def collect_files(self, data_directory, condition, group_size=None):
         """
         Collect files matching a pattern and optionally group them by video.
