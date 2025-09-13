@@ -19,90 +19,135 @@ import math
 
 class VitEncoder(nn.Module):
     """ 
-    Vision Transformer for image classification
+    Vision Transformer for image reconstruction task
     """
-
-    def __init__(self, patch_size, token_dim, attn_dim, num_heads, mlp_size, num_tf_layers, num_classes, C, max_len=64):
+    def __init__(self, 
+                 patch_size, 
+                 embed_dim, 
+                 attn_dim, 
+                 num_heads, 
+                 mlp_size, 
+                 encoder_depth, 
+                 in_chans = 3, 
+                 max_len  = 64,
+                 mask_ratio = 0.75,
+                 norm_pix_loss=False):
+        
         """ Model initializer
-         num_tf_layers : The number of transformer blocks that we need
+         encoder_depth : The number of transformer blocks that we need in encoder
+         max_len : Maximum sequence length (number of emdeddings) the model can handle
+         norm_pix_loss : if we need to normalize the loss for pixels inside a patch
            """
         super().__init__()
-
+        
+        self.initialize_weights()
+        self.mask_ratio = mask_ratio
         # breaking image into patches, and projection to transformer token dimension
         self.pathchifier = Patchifier(patch_size)
 
         ''' Creating the embedding for each image patch/token'''
         self.patch_projection = nn.Sequential(   
-                nn.LayerNorm(patch_size * patch_size * C),
-                nn.Linear(patch_size * patch_size * C, token_dim) # token_dim = token embedding
+                nn.LayerNorm(patch_size * patch_size * in_chans),
+                nn.Linear(patch_size * patch_size * in_chans, embed_dim) # embed_dim = token embedding
             )
 
-        # adding CLS token and positional embedding
-        '''nn.Parameter: To assign a tensor as Module attributes they are automatically added to the list of
-        its parameters, and will appear e.g. in ~Module.parameters iterator. when requires_grad = True ---> the tensor
-        is updated through training with GD. 
-        / (token_dim ** 0.5): a common trick to stabilize training by keeping the scale of weights roughly controlled (similar to Xavier initialization)'''
-        # self.cls_token = nn.Parameter(torch.randn(1, token_dim) / (token_dim ** 0.5), requires_grad=True)
-        self.pos_emb = PositionalEncoding(token_dim, max_len=max_len) # return token embeddings + positional encoding
+        self.pos_emb = PositionalEncoding(embed_dim, max_len = max_len) # return token embeddings + positional encoding
 
         # cascade of transformer blocks
         transformer_blocks = [
             TransformerBlock(
-                    token_dim=token_dim,
-                    attn_dim=attn_dim,
-                    num_heads=num_heads,
-                    mlp_size=mlp_size
+                    embed_dim = embed_dim,
+                    attn_dim  = attn_dim,
+                    num_heads = num_heads,
+                    mlp_size  = mlp_size
                 )
-            for _ in range(num_tf_layers)
+            for _ in range(encoder_depth)
         ]
         self.transformer_blocks = nn.Sequential(*transformer_blocks)
 
-        # classifier
-        self.classifier = nn.Linear(token_dim, num_classes)
+        self.norm = nn.LayerNorm(embed_dim)
+        self.norm_pix_loss = norm_pix_loss
+
         return
 
-    
+    def initialize_weights(self):
+        ''' TODO '''
+        pass
+
+    def random_masking(self, x):
+        """
+        Perform random masking on patchified sequences.
+        
+        Args:
+            x: [B, T, N, D] 
+                - B = batch
+                - T = sequence length
+                - N = number of patches
+                - D = patch embedding dimension (flattened patch)
+            mask_ratio: float, fraction of patches to mask
+
+        Returns:
+            x_masked: [B, T, N_keep, D]   (only visible patches)
+            mask:     [B, T, N]           (0 = keep, 1 = masked)
+            ids_restore: [B, T, N]        (indices to restore order)
+        
+        Code initiallly borrowed from https://github.com/facebookresearch/mae/blob/main/models_mae.py and adjusted to our task
+        """
+        
+        B, T, N, D = x.shape
+        len_keep = int(N * (1 - self.mask_ratio)) # How many tokens/patches to keep?
+
+        # Generate random noise per sequence element
+        noise = torch.rand(B, T, N, device=x.device)
+
+        # Sort patches by noise
+        ids_shuffle = torch.argsort(noise, dim=-1)          # [B, T, N]
+        ids_restore = torch.argsort(ids_shuffle, dim=-1)    # [B, T, N]
+
+        # Keep the first len_keep patches
+        ids_keep = ids_shuffle[:, :, :len_keep]             # [B, T, N_keep]
+        ids_keep_expanded = ids_keep.unsqueeze(-1).expand(-1, -1, -1, D)
+
+        # Select the kept patches
+        x_masked = torch.gather(x, dim=2, index=ids_keep_expanded)  # [B, T, N_keep, D]
+
+        # Build mask: 0 = keep, 1 = masked
+        mask = torch.ones([B, T, N], device=x.device)
+        mask[:, :, :len_keep] = 0
+        mask = torch.gather(mask, dim=2, index=ids_restore)  # reorder to original
+        '''
+        x_masked: only the unmasked (kept) tokens.
+        mask: binary mask for the original sequence (0=keep, 1=mask). id's for which tokens to keep and mask
+        ids_restore: the permutation needed to restore original order.
+        '''
+        return x_masked, mask, ids_restore
+
     def forward(self, x): # full Transformer encoder block forward pass
         """ 
         Forward pass
         """
-        B = x.shape[0]  # (B, 10, 1, 64, 64)
-        seq_len = x.shape[1]
+        B = x.shape[0]  
         C = x.shape[2]
         
         # breaking image into patches, and projection to transformer token dimension
-        patches = self.pathchifier(x)  # ---> (B, 10, num_patches, patch_dim) e.g. [32, 10, 16, 256]
-        patch_tokens = self.patch_projection(patches)  # ---> [32,10,16,128]
+        patches = self.pathchifier(x)  # ---> (B, 10, num_patches, patch_dim)
+        patch_tokens = self.patch_projection(patches)  
         # print(f"Patch tokens shape: {patch_tokens.shape}")
-        # concatenating CLS token and adding positional embeddings
-        # cur_cls_token = self.cls_token.unsqueeze(0).repeat(B, 1, 1) # shape: (B, 1, D).i.e [32,1,128]  B copies of the token, one for each sample in the batch.
-        # print(f"Cur cls token shape: {cur_cls_token.shape}")
-
-        # cur_cls_token = cur_cls_token.repeat(1, seq_len, 1).unsqueeze(2) # shape: (B, seq_len, 1, D) i.e [32,10,1,128]
-        # print(f"New Cur cls token shape: {cur_cls_token.shape}")
-
-        # tokens = torch.cat([cur_cls_token, patch_tokens], dim=2)  # ~(B, 10, 1 + 16, D) So now, each input sequence starts with the [CLS] token, followed by the patch tokens.
-        # ---> one token for all the patches of one image, not one per sequence. Summary token of all image
-        # print(f"Tokens shape: {tokens.shape}") # [32, 10, 17, 128]
 
         tokens_with_pe = self.pos_emb(patch_tokens) #tokens + positional encoding
-        # print(f"Tokens with pe shape: {tokens_with_pe.shape}") # same shape : [32, 10, 17, 128]
+        # print(f"Tokens with pe shape: {tokens_with_pe.shape}")
 
-        # processing with transformer
-        out_tokens = self.transformer_blocks(tokens_with_pe)
-        # print(f"Out tokens shape: {out_tokens.shape}")
-        # Extract CLS token from each frame (position 0 in num_tokens dimension)
-        # out_cls_token = out_tokens[:, :, 0]  # Shape: [32, 10, 128]
-        # print(f"Out cls token shape: {out_cls_token.shape}")
-        
-        # NOTE: For video classification, we'll use the mean of CLS tokens across all frames
-        # out_cls_token = out_cls_token.mean(dim=1)  # Shape: [32, 128]
-        # print(f"Final cls token shape: {out_cls_token.shape}")
 
-        # classification
-        # logits = self.classifier(out_cls_token)
-        # return logits
-        return out_tokens
+        ''' masking tokens'''
+        x, mask, ids_restore = self.random_masking(tokens_with_pe) 
+
+        # apply Transformer blocks
+        x = self.transformer_blocks(x)
+        # print(f"Out tf_block tokens shape: {x.shape}")
+
+        x = self.norm(x)
+
+        return x, mask, ids_restore
 
 
     def get_attn_mask(self):
@@ -113,38 +158,23 @@ class VitEncoder(nn.Module):
         return attn_masks
 
 
-'''
-Multi-Head Self-Attention module FLOW SUMMARY:
 
-# Input: [32, 10, 17, 128]
-# ↓ (split_into_heads)
-# [1280, 17, 32] - for efficient attention computation
-# ↓ (attention)
-# [1280, 17, 32] - after attention
-# ↓ (merge_heads)
-# [320, 17, 128] - heads merged back
-# ↓ (out_proj)
-# [320, 17, 128] - after projection
-# ↓ (reshape in forward)
-# [32, 10, 17, 128] - back to original shape
-
-'''
 class MultiHeadSelfAttention(nn.Module):
     """ 
     Self-Attention module
 
     Args:
     -----
-    token_dim: int
+    embed_dim: int
         Dimensionality of the tokens in the transformer
     inner_dim: int
         Dimensionality used for attention
     """
 
-    def __init__(self, token_dim, attn_dim, num_heads):
+    def __init__(self, embed_dim, attn_dim, num_heads):
         """ """
         super().__init__()
-        self.token_dim = token_dim #  Embedding size per token, here called D. N number of tokens
+        self.embed_dim = embed_dim #  Embedding size per token, here called D. N number of tokens
         self.attn_dim = attn_dim # the dimension of the attention vector
         self.num_heads = num_heads 
         assert num_heads >= 1 # multi-head attention
@@ -152,12 +182,12 @@ class MultiHeadSelfAttention(nn.Module):
         self.head_dim = attn_dim // num_heads
 
         # query, key and value projections
-        self.q = nn.Linear(token_dim, attn_dim, bias=False) 
-        self.k = nn.Linear(token_dim, attn_dim, bias=False) 
-        self.v = nn.Linear(token_dim, attn_dim, bias=False) 
+        self.q = nn.Linear(embed_dim, attn_dim, bias=False) 
+        self.k = nn.Linear(embed_dim, attn_dim, bias=False) 
+        self.v = nn.Linear(embed_dim, attn_dim, bias=False) 
 
         # output projection
-        self.out_proj = nn.Linear(attn_dim, token_dim, bias=False) # back to the original input dimension
+        self.out_proj = nn.Linear(attn_dim, embed_dim, bias=False) # back to the original input dimension
         return
     
     def attention(self, query, key, value):
@@ -183,25 +213,25 @@ class MultiHeadSelfAttention(nn.Module):
         """
         # print(f"Input x shape: {x.shape}")
 
-        batch_size, seq_len, num_tokens, token_dim = x.shape  # [32, 10, 17, 128]
+        batch_size, seq_len, num_tokens, embed_dim = x.shape 
         # print(f'number of heads: {self.num_heads}')
         # print(f'head dim: {self.head_dim}')
         # print(f"Input x shape: {x.shape}")
         
         # Reshape to combine batch and sequence dimensions for processing
-        x = x.reshape(batch_size * seq_len, num_tokens, token_dim)  # [320, 17, 128]
+        x = x.reshape(batch_size * seq_len, num_tokens, embed_dim)  
         # print(f"Reshaped x shape: {x.shape}")
         
         # Split the token dimension into heads
-        x = x.view(batch_size * seq_len, num_tokens, self.num_heads, self.head_dim)  # [320, 17, 4, 32]
+        x = x.view(batch_size * seq_len, num_tokens, self.num_heads, self.head_dim)  
         # print(f"After view x shape: {x.shape}")
         
         # Permute to get heads dimension first for independent attention
-        x = x.permute(0, 2, 1, 3)  # [320, 4, 17, 32]
+        x = x.permute(0, 2, 1, 3) 
         # print(f"After permute x shape: {x.shape}")
         
         # Reshape to combine batch*seq and heads for batch processing
-        y = x.reshape(batch_size * seq_len * self.num_heads, num_tokens, self.head_dim)  # [1280, 17, 32]
+        y = x.reshape(batch_size * seq_len * self.num_heads, num_tokens, self.head_dim)  
         # print(f"Final y shape: {y.shape}")
         
         return y
@@ -210,9 +240,9 @@ class MultiHeadSelfAttention(nn.Module):
         """
         Rearranging heads back to original head structure
         """
-        _, num_tokens, dim_head = x.shape # [1280, 17, 32]
-        y = x.reshape(-1, self.num_heads, num_tokens, dim_head) # --> [320, 4, 17, 32]
-        y = y.reshape(-1, num_tokens, self.num_heads * dim_head) # --> [320, 17, 128]
+        _, num_tokens, dim_head = x.shape 
+        y = x.reshape(-1, self.num_heads, num_tokens, dim_head) 
+        y = y.reshape(-1, num_tokens, self.num_heads * dim_head) 
         return y
 
 
@@ -221,13 +251,13 @@ class MultiHeadSelfAttention(nn.Module):
         Forward pass through Self-Attention module
         """
         # Store original shape to restore later
-        original_shape = x.shape  # [32, 10, 17, 128]
-        batch_size, seq_len, num_tokens, token_dim = original_shape
+        original_shape = x.shape 
+        batch_size, seq_len, num_tokens, embed_dim = original_shape
         
         # linear projections and splitting into heads:
         # (B, N, D) --> (B, N, Nh, Dh) --> (B * Nh, N, Dh)
         q, k, v = self.q(x), self.k(x), self.v(x)
-        q = self.split_into_heads(q) # [1280, 17, 32]
+        q = self.split_into_heads(q) 
         k = self.split_into_heads(k)
         v = self.split_into_heads(v)
 
@@ -235,12 +265,12 @@ class MultiHeadSelfAttention(nn.Module):
         vect = self.attention(query=q, key=k, value=v)
         # print(f"Vect shape: {vect.shape}")
         # rearranging heads: (B * Nh, N, Dh) --> (B*T, N, D)
-        y = self.merge_heads(vect)  # [320, 17, 128]
+        y = self.merge_heads(vect)  
         # print(f"Y SHAPE AFTER MERGE HEADS: {y.shape}")
-        y = self.out_proj(y) #(B, N, token_dim) --> [320,17,128]
+        y = self.out_proj(y) #(B, N, embed_dim)
         # print(f"Y SHAPE AFTER OUT PROJ: {y.shape}")
         # Reshape back to original 4D shape
-        y = y.reshape(batch_size, seq_len, num_tokens, token_dim)  # [32, 10, 17, 128]
+        y = y.reshape(batch_size, seq_len, num_tokens, embed_dim)  
         # print(f"Y SHAPE AFTER RESHAPE: {y.shape}")
         return y
     
@@ -278,7 +308,7 @@ class TransformerBlock(nn.Module):
 
     Args:
     -----
-    token_dim: int
+    embed_dim: int
         Dimensionality of the input tokens
     attn_dim: int
         Inner dimensionality of the attention module. Must be divisible be num_heads
@@ -288,26 +318,26 @@ class TransformerBlock(nn.Module):
         Hidden dimension of the MLP module
     """
 
-    def __init__(self, token_dim, attn_dim, num_heads, mlp_size):
+    def __init__(self, embed_dim, attn_dim, num_heads, mlp_size):
         """ Module initializer """
         super().__init__()
-        self.token_dim = token_dim
+        self.embed_dim = embed_dim
         self.mlp_size = mlp_size
         self.attn_dim = attn_dim
         self.num_heads = num_heads
 
         # MHA
-        self.ln_att = nn.LayerNorm(token_dim, eps=1e-6) # Layer normalization
+        self.ln_att = nn.LayerNorm(embed_dim, eps=1e-6) # Layer normalization
         self.attn = MultiHeadSelfAttention(
-                token_dim=token_dim,
+                embed_dim=embed_dim,
                 attn_dim=attn_dim,
                 num_heads=num_heads
             ) # ---> [320,17,128]
         
         # MLP
-        self.ln_mlp = nn.LayerNorm(token_dim, eps=1e-6) # Layer normalization
+        self.ln_mlp = nn.LayerNorm(embed_dim, eps=1e-6) # Layer normalization
         self.mlp = MLP(
-                in_dim=token_dim,
+                in_dim=embed_dim,
                 hidden_dim=mlp_size,
             )
         return
@@ -324,9 +354,9 @@ class TransformerBlock(nn.Module):
         # Self-attention.
         x = self.ln_att(inputs)
         # print(f"X SHAPE BEFORE ATTENTION: {x.shape}")
-        x = self.attn(x) # should return [32, 10, 17, 128]
+        x = self.attn(x) 
         assert x.shape == inputs.shape, f"X shape: {x.shape} and inputs shape: {inputs.shape} MUST BE THE SAME (input and output of the attention block)"
-        y = x + inputs # residual connection - both are now 4D [32, 10, 17, 128]
+        y = x + inputs # residual connection - both are now 4D 
 
         # MLP
         z = self.ln_mlp(y)
