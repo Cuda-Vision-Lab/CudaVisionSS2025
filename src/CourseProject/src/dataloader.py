@@ -40,7 +40,7 @@ class MoviDataset(Dataset):
         coords = torch.load(self.coords[idx], map_location="cpu")  # loaded lazily
         masks = torch.load(self.masks[idx], map_location="cpu")
         
-        return coords, masks, rgbs, flows
+        return rgbs, masks, flows, coords
     
     def collect_files(self, data_directory, condition, group_size=None):
         """
