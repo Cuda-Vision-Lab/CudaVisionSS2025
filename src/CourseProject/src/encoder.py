@@ -17,7 +17,103 @@ from torch.utils.tensorboard import SummaryWriter
 import math
 
 
-class VitEncoder(nn.Module):
+class MaskEncoder(nn.Module):
+    """
+    Encodes segmentation masks into patch embeddings.
+    
+    Args:
+        patch_size: int, size of patches for mask patching
+        embed_dim: int, embedding dimension
+        in_chans: int, number of input channels (1 for grayscale masks)
+    """
+    
+    def __init__(self, patch_size, embed_dim, in_chans=1):
+        super().__init__()
+
+        self.mask_patchifier = Patchifier(patch_size)
+        
+        # Projection for mask patches
+        self.mask_projection = nn.Sequential(
+            nn.LayerNorm(patch_size * patch_size * in_chans),
+            nn.Linear(patch_size * patch_size * in_chans, embed_dim)
+        )
+        
+    def forward(self, masks):
+        """
+        Args:
+            masks: [B, T, H, W] - segmentation masks
+        
+        Returns:
+            mask_embeddings: [B, T, num_patches, embed_dim]
+        """
+        B, T, H, W = masks.shape
+        
+        # Convert to float32 to match LayerNorm expectations
+        masks = masks.float()
+        
+        # Add channel dimension 
+        if masks.dim() == 4:
+            masks = masks.unsqueeze(2)  # [B, T, 1, H, W]
+        
+        # Patchify masks
+        mask_patches = self.mask_patchifier(masks)  # [B, T, num_patches, patch_dim]
+        
+        # Project to embedding space
+        mask_embeddings = self.mask_projection(mask_patches)  # [B, T, num_patches, embed_dim]
+        
+        return mask_embeddings
+
+
+class BBoxEncoder(nn.Module):
+    """
+    Encodes bounding boxes into embeddings that can be used with the transformer.
+    
+    Args:
+        embed_dim: int, embedding dimension for the transformer
+        max_objects: int, maximum number of objects per frame
+        bbox_dim: int, dimension of bbox coordinates (usually 4 for x1,y1,x2,y2)
+    """
+    
+    def __init__(self, embed_dim, max_objects=11):
+        super().__init__()
+        
+        self.embed_dim = embed_dim
+        
+        # Learnable embeddings for bbox coordinates
+        self.bbox_projection = nn.Sequential(
+            nn.Linear(4, embed_dim // 2),
+            nn.ReLU(),
+            nn.Linear(embed_dim // 2, embed_dim)
+        )
+        
+        # Positional encoding for bbox order
+        self.bbox_pos_encoding = nn.Parameter(torch.randn(max_objects, embed_dim // 4))
+        
+        # Final projection to combine all bbox features
+        self.bbox_final_proj = nn.Linear(embed_dim + embed_dim // 4, embed_dim)
+        
+    def forward(self, bboxes):
+        """
+        Args:
+            bboxes: [B, T, max_objects, bbox_dim] - bounding box coordinates
+        
+        Returns:
+            bbox_embeddings: [B, T, max_objects, embed_dim]
+        """
+        B, T, max_objects, bbox_dim = bboxes.shape
+        
+        # Convert to float32 to match Linear layer expectations
+        # bboxes = bboxes.float()
+        
+        # Project bbox coordinates to embedding space
+        bbox_coords = bboxes.view(B * T * max_objects, bbox_dim)
+        bbox_emb = self.bbox_projection(bbox_coords)  # [B*T*max_objects, embed_dim]
+        bbox_emb = bbox_emb.view(B, T, max_objects, self.embed_dim)
+        bbox_embeddings = bbox_emb
+          
+        return bbox_embeddings
+
+class MultiModalVitEncoder(nn.Module):
     """ 
     Vision Transformer for image reconstruction task
     """
@@ -31,6 +127,9 @@ class VitEncoder(nn.Module):
                  in_chans = 3, 
                  max_len  = 64,
                  mask_ratio = 0.75,
+                 max_objects=11,
+                 use_masks=False,
+                 use_bboxes=False,
                  norm_pix_loss=False):
         
         """ Model initializer
@@ -40,17 +139,34 @@ class VitEncoder(nn.Module):
            """
         super().__init__()
         
-        self.initialize_weights()
+        # self.initialize_weights()
+        self.embed_dim = embed_dim
+        self.use_masks = use_masks
+        self.use_bboxes = use_bboxes
         self.mask_ratio = mask_ratio
+        
         # breaking image into patches, and projection to transformer token dimension
-        self.pathchifier = Patchifier(patch_size)
+        self.patchifier = Patchifier(patch_size)
 
-        ''' Creating the embedding for each image patch/token'''
+        ''' Image processing. Creating the embedding for each image patch/token'''
         self.patch_projection = nn.Sequential(   
                 nn.LayerNorm(patch_size * patch_size * in_chans),
                 nn.Linear(patch_size * patch_size * in_chans, embed_dim) # embed_dim = token embedding
             )
 
+        # Mask processing
+        if use_masks:
+            self.mask_encoder = MaskEncoder(patch_size, embed_dim, in_chans=1)
+        
+        # Bounding box processing
+        if use_bboxes:
+            self.bbox_encoder = BBoxEncoder(embed_dim, max_objects)
+        
+        # Multi-modal embeddings
+        if use_bboxes or use_masks:
+            self.modality_embeddings = nn.Embedding(3, embed_dim)  # 0: image, 1: mask, 2: bbox
+        
+        # Positional encoding
         self.pos_emb = PositionalEncoding(embed_dim, max_len = max_len) # return token embeddings + positional encoding
 
         # cascade of transformer blocks
@@ -122,32 +238,113 @@ class VitEncoder(nn.Module):
         '''
         return x_masked, mask, ids_restore
 
-    def forward(self, x): # full Transformer encoder block forward pass
+    def forward_loss(self, imgs, pred, mask):
+        """
+        imgs: [N, 3, H, W]
+        pred: [N, L, p*p*3]
+        mask: [N, L], 0 is keep, 1 is remove, 
+        """
+        target = self.patchify(imgs)
+        if self.norm_pix_loss:
+            mean = target.mean(dim=-1, keepdim=True)
+            var = target.var(dim=-1, keepdim=True)
+            target = (target - mean) / (var + 1.e-6)**.5
+
+        loss = (pred - target) ** 2
+        loss = loss.mean(dim=-1)  # [N, L], mean loss per patch
+
+        loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
+        return loss
+    
+    
+    def forward(self, images, masks=None, bboxes=None): # full Transformer encoder block forward pass
         """ 
         Forward pass
         """
-        B = x.shape[0]  
-        C = x.shape[2]
+        B, T = images.shape[:2]  
+        all_tokens = []
+        all_masks = {}
+        all_ids_restore = {}
         
-        # breaking image into patches, and projection to transformer token dimension
-        patches = self.pathchifier(x)  # ---> (B, 10, num_patches, patch_dim)
-        patch_tokens = self.patch_projection(patches)  
-        # print(f"Patch tokens shape: {patch_tokens.shape}")
+        # Process images
+        image_patches = self.patchifier(images)
+        image_tokens = self.patch_projection(image_patches)
+        image_tokens = self.pos_emb(image_tokens)
 
-        tokens_with_pe = self.pos_emb(patch_tokens) #tokens + positional encoding
-        # print(f"Tokens with pe shape: {tokens_with_pe.shape}")
-
-
-        ''' masking tokens'''
-        x, mask, ids_restore = self.random_masking(tokens_with_pe) 
-
+        # If using multiple modalities, add modality embedding
+        if self.use_masks or self.use_bboxes:
+            modality_emb = self.modality_embeddings(torch.zeros(B, T, 1, device=images.device, dtype=torch.long))
+            image_tokens = image_tokens + modality_emb
+        
+        # Apply masking to images
+        img_masked, img_mask, img_ids_restore = self.random_masking(image_tokens)
+        all_tokens.append(img_masked)
+        all_masks["image"] = img_mask
+        all_ids_restore["image"] = img_ids_restore
+        
+        '''Single-modal input, only images'''
+        if not self.use_masks and not self.use_bboxes:
+            encoded_features = self.transformer_blocks(img_masked)
+            encoded_features = self.norm(encoded_features)
+            return encoded_features, img_mask, img_ids_restore
+        
+        '''Multi-modal processing'''
+        # Process masks if provided
+        if self.use_masks and masks is not None:
+            mask_tokens = self.mask_encoder(masks['masks'])
+            mask_tokens = self.pos_emb(mask_tokens)
+            
+            # Add modality embedding for masks
+            modality_emb = self.modality_embeddings(torch.ones(B, T, 1, device=masks['masks'].device, dtype=torch.long))
+            mask_tokens = mask_tokens + modality_emb
+            
+            # Apply masking to masks
+            mask_masked, mask_mask, mask_ids_restore = self.random_masking(mask_tokens)
+            all_tokens.append(mask_masked)
+            all_masks["mask"] = mask_mask
+            all_ids_restore["mask"] = mask_ids_restore
+        
+        # Process bounding boxes if provided
+        if self.use_bboxes and bboxes is not None:
+            bbox_tokens = self.bbox_encoder(bboxes)
+            bbox_tokens = self.pos_emb(bbox_tokens)
+            
+            # Add modality embedding for bboxes
+            modality_emb = self.modality_embeddings(torch.full((B, T, 1), 2, device=bboxes.device, dtype=torch.long))
+            bbox_tokens = bbox_tokens + modality_emb
+            
+            # Apply masking to bboxes
+            bbox_masked, bbox_mask, bbox_ids_restore = self.random_masking(bbox_tokens)
+            all_tokens.append(bbox_masked)
+            all_masks["bbox"] = bbox_mask
+            all_ids_restore["bbox"] = bbox_ids_restore
+        
+        # Concatenate all tokens
+        if len(all_tokens) > 1:
+            # Pad shorter sequences to match the longest
+            max_length = max(token.shape[2] for token in all_tokens)
+            padded_tokens = []
+            
+            for token in all_tokens:
+                if token.shape[2] < max_length:
+                    # Pad with zeros
+                    padding = torch.zeros(B, T, max_length - token.shape[2], self.embed_dim, 
+                                        device=token.device, dtype=token.dtype)
+                    token = torch.cat([token, padding], dim=2)
+                padded_tokens.append(token)
+            
+            combined_tokens = torch.cat(padded_tokens, dim=2)
+        else:
+            combined_tokens = all_tokens[0]
+        
+           
         # apply Transformer blocks
-        x = self.transformer_blocks(x)
+        encoded_features = self.transformer_blocks(combined_tokens)
         # print(f"Out tf_block tokens shape: {x.shape}")
 
-        x = self.norm(x)
+        encoded_features = self.norm(encoded_features)
 
-        return x, mask, ids_restore
+        return encoded_features, all_masks, all_ids_restore
 
 
     def get_attn_mask(self):
