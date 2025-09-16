@@ -1,4 +1,4 @@
-from utils import *
+from CourseProject.src.utiils.utils import *
 import shutil
 import os
 from tqdm import tqdm
@@ -12,9 +12,10 @@ from torch.utils.data import Dataset, DataLoader
 import random
 import re
 # from transformations import *
-from utils import Patchifier,PositionalEncoding
+from CourseProject.src.utiils.utils import Patchifier,PositionalEncoding
 from torch.utils.tensorboard import SummaryWriter
 import math
+# from model_base import RandomMaskingMixin
 
 
 class MaskEncoder(nn.Module):
@@ -114,6 +115,8 @@ class BBoxEncoder(nn.Module):
         return bbox_embeddings
 
 class MultiModalVitEncoder(nn.Module):
+# class MultiModalVitEncoder(RandomMaskingMixin, nn.Module):
+    
     """ 
     Vision Transformer for image reconstruction task
     """
@@ -164,7 +167,7 @@ class MultiModalVitEncoder(nn.Module):
         
         # Multi-modal embeddings
         if use_bboxes or use_masks:
-            self.modality_embeddings = nn.Embedding(3, embed_dim)  # 0: image, 1: mask, 2: bbox
+            self.modality_embeddings = nn.Embedding(3, embed_dim)  # “tag” the input stream ---> 0: image, 1: mask, 2: bbox
         
         # Positional encoding
         self.pos_emb = PositionalEncoding(embed_dim, max_len = max_len) # return token embeddings + positional encoding
@@ -207,7 +210,7 @@ class MultiModalVitEncoder(nn.Module):
             mask:     [B, T, N]           (0 = keep, 1 = masked)
             ids_restore: [B, T, N]        (indices to restore order)
         
-        Code initiallly borrowed from https://github.com/facebookresearch/mae/blob/main/models_mae.py and adjusted to our task
+        Code initiallly adapted from https://github.com/facebookresearch/mae/blob/main/models_mae.py and adjusted to our task
         """
         
         B, T, N, D = x.shape
@@ -237,6 +240,7 @@ class MultiModalVitEncoder(nn.Module):
         ids_restore: the permutation needed to restore original order.
         '''
         return x_masked, mask, ids_restore
+        # return super().random_masking(x)
 
     def forward_loss(self, imgs, pred, mask):
         """
@@ -286,7 +290,7 @@ class MultiModalVitEncoder(nn.Module):
         if not self.use_masks and not self.use_bboxes:
             encoded_features = self.transformer_blocks(img_masked)
             encoded_features = self.norm(encoded_features)
-            return encoded_features, img_mask, img_ids_restore
+            return encoded_features, all_masks, all_ids_restore
         
         '''Multi-modal processing'''
         # Process masks if provided
