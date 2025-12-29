@@ -173,7 +173,6 @@ This repository is organized into 7 assignments and 1 course project, each focus
   - Mixed precision training
   - Comprehensive evaluation and visualization
 
-
 ---
 
 ## 🛠️ Technical Stack
@@ -183,30 +182,32 @@ This repository is organized into 7 assignments and 1 course project, each focus
 - **Data Processing**: NumPy, PIL, torchvision
 - **Evaluation**: sklearn metrics, custom evaluation scripts
 
-## 📊 Common Patterns Across Assignments
+---
 
-- **Training Infrastructure**: Consistent training loops with validation, checkpointing, and logging
-- **Experimentation**: Multiple model variants and hyperparameter configurations
-- **Visualization**: Comprehensive plots for losses, metrics, and model outputs
-- **Evaluation**: Standardized evaluation metrics and comparison frameworks
+## 🤝 Contributing
+Let's make this project better together!
+Contributions are welcome! If you have ideas to improve this project, find a bug, or want to add new features:
+
+- Open an issue to discuss your suggestions or report problems.
+- Fork the repository and submit a pull request with your changes.
+- Please follow best coding practices and include relevant tests and documentation.
 
 ---
 
-## 📝 Notes
+## 💬 Support
 
-- Each assignment includes session notebooks with tutorials and examples
-- Model checkpoints and TensorBoard logs are stored in respective directories
-- Configuration files (YAML) are used for experiment management
-- HTML exports of notebooks are available for easy viewing
+If you found this project helpful, you can support my work by buying me a coffee!  
 
----
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-orange?logo=buy-me-a-coffee&style=for-the-badge)](https://buymeacoffee.com/amirhosseinsoltani)
 
-## 👥 Team
+
+
+<!-- ## 👥 Team
 
 **Persian CUDA - Deep Learning Team**
 - Amirhossein Soltani
 - Aidin Masroor
-- Moein Taherkhani
+- Moein Taherkhani -->
 
 ---
 
