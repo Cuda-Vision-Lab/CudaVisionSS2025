@@ -1,5 +1,3 @@
----
-
 ## Project Organization
 
 ```
@@ -17,5 +15,3 @@ CudaVisionSS2025/
 ├── requirements.txt          # Python dependencies
 └── README.md                 # Main repository README
 ```
-
----
