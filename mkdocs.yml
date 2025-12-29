@@ -1,0 +1,63 @@
+site_name: CudaVision-Lab, Summar 2025, Uni-Bonn
+repo_url: https://github.com/Cuda-Vision-Lab/CudaVisionSS2025
+repo_name: Cuda-Vision-Lab/CudaVisionSS2025
+
+theme:
+  name: material
+  favicon: docs/PersianCuda.png
+  font:
+    text: Merriweather Sans
+    code: Red Hat Mono
+  palette: 
+    # Dark Mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Dark mode
+      primary: deep orange
+      accent: green
+
+    # Light Mode
+    - scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Light mode
+      primary: blue
+      accent: deep orange
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Structure: structure.md
+  - API:
+      - Dataloaders: api/dataloaders.md
+      - Models: api/models.md
+      - Training: api/training.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
