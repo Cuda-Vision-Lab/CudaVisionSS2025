@@ -1,7 +1,3 @@
-# CudaVisionSS2025
-Repo for Cuda Vison Lab Uni-Bonn 2025  
-A tutorial for Cuda developers. 
-
 # Deep Learning Course Assignments
 
 This repository contains implementations and experiments from a comprehensive deep learning course, covering fundamental neural network architectures, computer vision, generative models, and advanced transformer-based approaches.
