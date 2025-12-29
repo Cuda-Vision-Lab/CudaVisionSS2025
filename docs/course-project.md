@@ -1,13 +1,14 @@
+# Course Project: Video Prediction with Object Representations
+
 # Evaluating Image Representations for Video Prediction
 
 A comprehensive implementation of video prediction models using Hybrid Transformer-based and CNN architectures for both **holistic** and **object-centric** scene representations. This project explores different approaches to learning and predicting future video frames on the MOVi-C dataset.
 
 <p align="center">
-  <img src="src/experiments/02_Holistic_AE_XL/tboard_logs/recons.gif" alt="Reconstruction GIF" width="600" height="400" />
+  <img src="https://github.com/Cuda-Vision-Lab/CudaVisionSS2025/raw/main/src/CourseProject/src/experiments/02_Holistic_AE_XL/tboard_logs/recons.gif" alt="Reconstruction GIF" width="600" height="400" />
   <br>
   <em>Figure: Holistic autoencoder reconstruction of MOVi-C video frames (gif visualization)</em>
 </p>
-
 
 ## 📋 Table of Contents
 
@@ -495,5 +496,18 @@ If you use this code in your research, please cite:
 ```
 
 ---
+## 💬 Support
 
-**Note**: This is a course project Video Prediction with Object Representations. See the `docs/` folder for project reports and lab notebook examples.
+If you found this project helpful, you can support my work by buying me a coffee or via paypal!  
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-orange?logo=buy-me-a-coffee&style=for-the-badge)](https://buymeacoffee.com/amirhosseinsoltani)
+
+[![PayPal](https://img.shields.io/badge/Donate%20with-PayPal-blue?logo=paypal&style=for-the-badge)](https://paypal.me/thesoltanic)
+
+---
+## Location
+
+The complete project documentation, code, and notebooks are located in:
+```
+src/CourseProject/
+```

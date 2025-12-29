@@ -42,12 +42,17 @@ plugins:
 
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Structure: structure.md
-  - API:
-      - Dataloaders: api/dataloaders.md
-      - Models: api/models.md
-      - Training: api/training.md
+  - Repository Structure: structure.md
+  - Assignments:
+      - 1 - Neural Network Fundamentals: assignments/assignment1.md
+      - 2 - Transfer Learning: assignments/assignment2.md
+      - 3 - RNNs: assignments/assignment3.md
+      - 4 - Variational Autoencoders: assignments/assignment4.md
+      - 5 - GANs: assignments/assignment5.md
+      - 6 - Self-Supervised Learning: assignments/assignment6.md
+      - 7 - Vision Transformers (VITs): assignments/assignment7.md
+  - Course Project:
+      - Video Prediction with Object Representations: course-project.md
 
 markdown_extensions:
   - pymdownx.highlight:
