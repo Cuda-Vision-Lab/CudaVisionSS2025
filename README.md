@@ -1,5 +1,7 @@
 # Deep Learning Course Assignments
 
+[![Docs](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://cuda-vision-lab.github.io/CudaVisionSS2025/)
+
 This repository contains implementations and experiments from a comprehensive deep learning course, covering fundamental neural network architectures, computer vision, generative models, and advanced transformer-based approaches.
 
 ## 📚 Overview
