@@ -196,9 +196,14 @@ Contributions are welcome! If you have ideas to improve this project, find a bug
 
 ## 💬 Support
 
-If you found this project helpful, you can support my work by buying me a coffee!  
+If you found this project helpful, you can support my work by buying me a coffee or via paypal!  
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-orange?logo=buy-me-a-coffee&style=for-the-badge)](https://buymeacoffee.com/amirhosseinsoltani)
+
+[![PayPal](https://img.shields.io/badge/Donate%20with-PayPal-blue?logo=paypal&style=for-the-badge)](https://paypal.me/thesoltanic)
+
+
+
 
 
 
