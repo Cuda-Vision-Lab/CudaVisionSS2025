@@ -35,6 +35,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: "CudaVision ${{ github.ref_name }}"
           files: project-v${{ github.ref_name }}.zip
           generate_release_notes: true
         env:
