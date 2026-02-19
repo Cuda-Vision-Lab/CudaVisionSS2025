@@ -1,0 +1,1226 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../assignments/assignment7/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../docs/PersianCuda.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>Video Prediction with Object Representations - CudaVision-Lab, Summar 2025, Uni-Bonn</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Merriweather+Sans:300,300i,400,400i,700,700i%7CRed+Hat+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Merriweather Sans";--md-code-font:"Red Hat Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="green">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#course-project-video-prediction-with-object-representations" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="CudaVision-Lab, Summar 2025, Uni-Bonn" class="md-header__button md-logo" aria-label="CudaVision-Lab, Summar 2025, Uni-Bonn" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CudaVision-Lab, Summar 2025, Uni-Bonn
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Video Prediction with Object Representations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-orange" data-md-color-accent="green"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="deep-orange"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/Cuda-Vision-Lab/CudaVisionSS2025" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Cuda-Vision-Lab/CudaVisionSS2025
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="CudaVision-Lab, Summar 2025, Uni-Bonn" class="md-nav__button md-logo" aria-label="CudaVision-Lab, Summar 2025, Uni-Bonn" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CudaVision-Lab, Summar 2025, Uni-Bonn
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/Cuda-Vision-Lab/CudaVisionSS2025" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Cuda-Vision-Lab/CudaVisionSS2025
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repository Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assignments
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Assignments
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1 - Neural Network Fundamentals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2 - Transfer Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3 - RNNs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4 - Variational Autoencoders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment5/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5 - GANs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment6/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6 - Self-Supervised Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../assignments/assignment7/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7 - Vision Transformers (VITs)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Course Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Course Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Video Prediction with Object Representations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="course-project-video-prediction-with-object-representations">Course Project: Video Prediction with Object Representations</h1>
+<h1 id="evaluating-image-representations-for-video-prediction">Evaluating Image Representations for Video Prediction</h1>
+<p>A comprehensive implementation of video prediction models using Hybrid Transformer-based and CNN architectures for both <strong>holistic</strong> and <strong>object-centric</strong> scene representations. This project explores different approaches to learning and predicting future video frames on the MOVi-C dataset.</p>
+<p align="center">
+  <img src="https://github.com/Cuda-Vision-Lab/CudaVisionSS2025/raw/main/src/CourseProject/src/experiments/02_Holistic_AE_XL/tboard_logs/recons.gif" alt="Reconstruction GIF" width="600" height="400" />
+  <br>
+  <em>Figure: Holistic autoencoder reconstruction of MOVi-C video frames (gif visualization)</em>
+</p>
+
+<h2 id="table-of-contents">📋 Table of Contents</h2>
+<ul>
+<li><a href="#-overview">Overview</a></li>
+<li><a href="#-features">Features</a></li>
+<li><a href="#-project-structure">Project Structure</a></li>
+<li><a href="#️-architecture">Architecture</a></li>
+<li><a href="#-dataset">Dataset</a></li>
+<li><a href="#-usage">Usage</a></li>
+<li><a href="#-experiments">Experiments</a></li>
+<li><a href="#-model-checkpoints">Model Checkpoints</a></li>
+<li><a href="#️-configuration">Configuration</a></li>
+<li><a href="#-results">Results</a></li>
+<li><a href="#-citation">Citation</a></li>
+</ul>
+<h2 id="overview">🎯 Overview</h2>
+<p>This project implements a two-stage video prediction pipeline:</p>
+<ol>
+<li><strong>Stage 1 - Autoencoder Training</strong>: Learn compressed representations of video frames</li>
+<li><strong>Stage 2 - Predictor Training</strong>: Predict future frame representations in latent space</li>
+</ol>
+<p>The framework supports two distinct scene representation approaches:
+- <strong>Holistic Representation</strong>: Treats the entire scene as a unified entity
+- <strong>Object-Centric (OC) Representation</strong>: Decomposes scenes into individual objects using masks/bounding boxes</p>
+<h2 id="features">✨ Features</h2>
+<ul>
+<li>🔄 <strong>Two-Stage Training Pipeline</strong>: Separate autoencoder and predictor training phases</li>
+<li>🎭 <strong>Dual Scene Representations</strong>: Support for both holistic and object-centric approaches</li>
+<li>🧠 <strong>Transformer-Based Architecture</strong>: Modern attention-based encoders and decoders</li>
+<li>🎯 <strong>Flexible Configuration</strong>: Easy-to-modify configuration system</li>
+<li>📊 <strong>Comprehensive Logging</strong>: TensorBoard integration with visualization support</li>
+<li>⚡ <strong>Mixed Precision Training</strong>: Efficient GPU utilization with AMP support</li>
+<li>🔍 <strong>Early Stopping &amp; Scheduling</strong>: Automatic training optimization</li>
+<li>💾 <strong>Checkpoint Management</strong>: Automatic model saving and loading</li>
+</ul>
+<h2 id="project-structure">📁 Project Structure</h2>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>CourseProject_2/
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── src/
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── base/                    # Base classes
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   │   ├── baseTrainer.py       # Base trainer implementation
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│   │   └── baseTransformer.py   # Base transformer blocks
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── datalib/                 # Data loading and processing
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   ├── MoviC.py            # MOVi-C dataset class
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   ├── load_data.py        # Data loading utilities
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   └── transforms.py        # Data augmentation
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   ├── model/                   # Model architectures
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   ├── ocvp.py             # Main model definitions (TransformerAutoEncoder, TransformerPredictor, OCVP)
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   │   ├── holistic_encoder.py # Holistic encoder (patch-based)
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   │   ├── holistic_decoder.py # Holistic decoder
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>│   │   ├── holistic_predictor.py # Holistic predictor
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>│   │   ├── oc_encoder.py       # Object-centric encoder (CNN + Transformer)
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>│   │   ├── oc_decoder.py       # Object-centric decoder (Transformer + CNN)
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>│   │   ├── oc_predictor.py     # Object-centric predictor
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   │   ├── predictor_wrapper.py # Autoregressive wrapper with sliding window
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│   │   └── model_utils.py      # Model utilities (TransformerBlock, Patchifier, etc.)
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>│   ├── utils/                   # Utility functions
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>│   │   ├── logger.py           # Logging utilities
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>│   │   ├── metrics.py          # Evaluation metrics
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>│   │   ├── utils.py            # General utilities
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>│   │   └── visualization.py    # Visualization tools
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>│   ├── experiments/             # Experiment outputs
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>│   │   └── [experiment_name]/
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>│   │       ├── checkpoints/    # Model checkpoints
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>│   │       ├── config/         # Experiment config
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>│   │       └── tboard_logs/    # TensorBoard logs
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>│   ├── CONFIG.py               # Global configuration
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>│   ├── trainer.py              # Training entry point
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>│   └── ocvp.ipynb             # Analysis notebook
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>├── docs/                       # Documentation and reports
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>├── requirements.txt            # Python dependencies
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>└── README.md                   # This file
+</span></code></pre></div>
+<h3 id="why-transformer-cnn-hybrid">Why Transformer + CNN Hybrid?</h3>
+<p>The object-centric model uses a <strong>hybrid Transformer + CNN architecture</strong> for optimal performance:</p>
+<p><strong>CNN Advantages:</strong>
+- ✅ <strong>Inductive Bias</strong>: Built-in understanding of spatial locality and translation invariance
+- ✅ <strong>Efficient Downsampling</strong>: Reduces 64×64 images to compact 256D vectors
+- ✅ <strong>Parameter Efficiency</strong>: Fewer parameters than fully linear projections
+- ✅ <strong>Better Image Reconstruction</strong>: ConvTranspose layers naturally upsample spatial features</p>
+<p><strong>Transformer Advantages:</strong>
+- ✅ <strong>Temporal Modeling</strong>: Captures long-range dependencies across time
+- ✅ <strong>Object Relationships</strong>: Models interactions between multiple objects
+- ✅ <strong>Attention Mechanism</strong>: Learns which objects/features are important
+- ✅ <strong>Flexible Context</strong>: Handles variable number of objects and temporal sequences</p>
+<p><strong>Combined Benefits:</strong>
+- 🎯 CNNs handle spatial features (what objects look like)
+- 🎯 Transformers handle temporal dynamics (how objects move and interact)
+- 🎯 Best of both worlds: local spatial structure + global temporal reasoning</p>
+<h3 id="key-components">Key Components</h3>
+<ol>
+<li><strong>Encoder</strong> (<code>HolisticEncoder</code> / <code>ObjectCentricEncoder</code>)</li>
+<li><strong>Holistic</strong>: Patchifies input images (16×16 patches) → Linear projection → Transformer</li>
+<li><strong>Object-Centric</strong>: CNN encoder + Transformer hybrid architecture<ul>
+<li><strong>CNN Feature Extraction</strong>: 3-layer ConvNet downsampler</li>
+<li>Conv2d(3→64): 64×64 → 32×32</li>
+<li>Conv2d(64→128): 32×32 → 16×16</li>
+<li>Conv2d(128→256): 16×16 → 8×8</li>
+<li>Linear: Flatten → 256D embedding</li>
+<li>Extracts per-object features from masks/bboxes (up to 11 objects)</li>
+<li>Transformer processes object tokens across time</li>
+</ul>
+</li>
+<li>Configurable depth (12 layers default)</li>
+<li>Embedding dimension: 256</li>
+<li>Multi-head attention (8 heads)</li>
+<li>
+<p>MLP size: 1024</p>
+</li>
+<li>
+<p><strong>Decoder</strong> (<code>HolisticDecoder</code> / <code>ObjectCentricDecoder</code>)</p>
+</li>
+<li><strong>Holistic</strong>: Transformer → Linear projection → Unpatchify to image</li>
+<li><strong>Object-Centric</strong>: Transformer + CNN hybrid architecture<ul>
+<li>Transformer processes latent object representations</li>
+<li><strong>CNN Upsampling Decoder</strong>: 3-layer ConvTranspose</li>
+<li>Linear: 192D → 128×8×8 feature map</li>
+<li>ConvTranspose2d(128→64): 8×8 → 16×16</li>
+<li>ConvTranspose2d(64→32): 16×16 → 32×32</li>
+<li>ConvTranspose2d(32→3): 32×32 → 64×64 RGB</li>
+<li>Tanh activation for [-1, 1] output range</li>
+<li>Combines per-object frames back to full scene</li>
+</ul>
+</li>
+<li>Configurable depth (8 layers default)</li>
+<li>Embedding dimension: 192</li>
+<li>
+<p>Mixed loss: MSE (0.8) + L1 (0.2)</p>
+</li>
+<li>
+<p><strong>Predictor</strong> (<code>HolisticTransformerPredictor</code> / <code>ObjectCentricTransformerPredictor</code>)</p>
+</li>
+<li>Predicts future latent representations autoregressively</li>
+<li>Transformer-based temporal modeling</li>
+<li>Configurable depth (8 layers default)</li>
+<li>Embedding dimension: 192</li>
+<li>
+<p>Optional residual connections</p>
+</li>
+<li>
+<p><strong>Predictor Wrapper</strong> (<code>PredictorWrapper</code>)</p>
+</li>
+<li><strong>Autoregressive Prediction</strong>: Iteratively predicts future frames</li>
+<li><strong>Sliding Window Mechanism</strong>: Maintains a buffer of size 5<ul>
+<li>Concatenates new predictions to input buffer</li>
+<li>Drops oldest frames when buffer exceeds window size</li>
+</ul>
+</li>
+<li><strong>Training Strategy</strong>:<ul>
+<li>Random temporal slicing for data augmentation</li>
+<li>Per-step loss computation with temporal consistency</li>
+</ul>
+</li>
+<li><strong>Advanced Loss Function</strong>:<ul>
+<li>MSE loss (0.6): Overall structure</li>
+<li>L1 loss (0.2): Sharpness and sparsity</li>
+<li>Cosine similarity loss (0.2): Feature alignment</li>
+</ul>
+</li>
+<li>Generates 5 future frame predictions per forward pass</li>
+</ol>
+<h2 id="architecture">🏗️ Architecture</h2>
+<h3 id="overall-pipeline">Overall Pipeline</h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Input Video Frames → Encoder → Latent Representation → Predictor → Future Latent → Decoder → Predicted Frames
+</span></code></pre></div>
+<h3 id="detailed-architecture-object-centric-model-transformer-cnn">Detailed Architecture: Object-Centric Model (Transformer + CNN)</h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>┌─────────────────────────────────────────────────────────────────────────────┐
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>│                          OBJECT-CENTRIC ENCODER                             │
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>├─────────────────────────────────────────────────────────────────────────────┤
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>│ Input: Video [B, T, 3, 64, 64] + Masks [B, T, 64, 64]                       │
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│   ↓                                                                         │
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│ Object Extraction (11 objects max)                                          │
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│   → Object Frames: [B, T, 11, 3, 64, 64]                                    │
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│   ↓                                                                         │
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>│ CNN Feature Extractor (Per Object):                                         │
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>│   • Conv2d(3→64, k=4, s=2) + BatchNorm + ReLU    [64x64 → 32x32]            │
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>│   • Conv2d(64→128, k=4, s=2) + BatchNorm + ReLU  [32x32 → 16x16]            │
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>│   • Conv2d(128→256, k=4, s=2) + BatchNorm + ReLU [16x16 → 8x8]              │
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>│   • Flatten + Linear(256·8·8 → 256)                                         │
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>│   → Object Tokens: [B, T, 11, 256]                                          │
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>│   ↓                                                                         │
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>│ Transformer Encoder (12 layers):                                            │
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>│   • Positional Encoding                                                     │
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>│   • Multi-Head Attention (8 heads, dim=128)                                 │
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>│   • MLP (dim=1024)                                                          │
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>│   • Layer Normalization                                                     │
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a>│   → Latent: [B, T, 11, 256]                                                 │ 
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>└─────────────────────────────────────────────────────────────────────────────┘
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a>┌─────────────────────────────────────────────────────────────────────────────┐
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>│                            PREDICTOR + WRAPPER                              │
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>├─────────────────────────────────────────────────────────────────────────────┤
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a>│ Input Latent: [B, T=24, 11, 256]                                            │
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a>│   ↓                                                                         │
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a>│ PredictorWrapper (Autoregressive):                                          │
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a>│   • Random temporal slice (5 frames)                                        │
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a>│   • Sliding window buffer (size=5)                                          │
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a>│   ↓                                                                         │
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a>│ Transformer Predictor (8 layers):                                           │
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a>│   • Linear(256 → 192)                                                       │
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>│   • Transformer blocks (depth=8)                                            │
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a>│   • Linear(192 → 256)                                                       │
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a>│   • Optional residual connections                                           │
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>│   ↓                                                                         │
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a>│ Autoregressive Loop (5 predictions):                                        │
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a>│   For t in 1..5:                                                            │
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a>│     • Predict next frame                                                    │
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a>│     • Append to buffer, shift window                                        │
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a>│     • Compute loss (MSE + L1 + Cosine)                                      │
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a>│   → Future Latent: [B, 5, 11, 256]                                          │ 
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>└─────────────────────────────────────────────────────────────────────────────┘
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a>┌─────────────────────────────────────────────────────────────────────────────┐
+</span><span id="__span-2-46"><a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a>│                          OBJECT-CENTRIC DECODER                             │
+</span><span id="__span-2-47"><a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a>├─────────────────────────────────────────────────────────────────────────────┤
+</span><span id="__span-2-48"><a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a>│ Input Latent: [B, T, 11, 256]                                               │
+</span><span id="__span-2-49"><a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a>│   ↓                                                                         │
+</span><span id="__span-2-50"><a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a>│ Transformer Decoder (8 layers):                                             │
+</span><span id="__span-2-51"><a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a>│   • Linear(256 → 192)                                                       │
+</span><span id="__span-2-52"><a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a>│   • Positional Encoding                                                     │
+</span><span id="__span-2-53"><a id="__codelineno-2-53" name="__codelineno-2-53" href="#__codelineno-2-53"></a>│   • Transformer blocks (depth=8)                                            │
+</span><span id="__span-2-54"><a id="__codelineno-2-54" name="__codelineno-2-54" href="#__codelineno-2-54"></a>│   • Layer Normalization                                                     │
+</span><span id="__span-2-55"><a id="__codelineno-2-55" name="__codelineno-2-55" href="#__codelineno-2-55"></a>│   → [B, T, 11, 192]                                                         │
+</span><span id="__span-2-56"><a id="__codelineno-2-56" name="__codelineno-2-56" href="#__codelineno-2-56"></a>│   ↓                                                                         │
+</span><span id="__span-2-57"><a id="__codelineno-2-57" name="__codelineno-2-57" href="#__codelineno-2-57"></a>│ CNN Upsampling Decoder (Per Object):                                        │
+</span><span id="__span-2-58"><a id="__codelineno-2-58" name="__codelineno-2-58" href="#__codelineno-2-58"></a>│   • Linear(192 → 128·8·8) + Reshape to [128, 8, 8]                          │
+</span><span id="__span-2-59"><a id="__codelineno-2-59" name="__codelineno-2-59" href="#__codelineno-2-59"></a>│   • ConvTranspose2d(128→64, k=4, s=2) + BatchNorm + ReLU [8x8 → 16x16]      │
+</span><span id="__span-2-60"><a id="__codelineno-2-60" name="__codelineno-2-60" href="#__codelineno-2-60"></a>│   • ConvTranspose2d(64→32, k=4, s=2) + BatchNorm + ReLU [16x16 → 32x32]     │
+</span><span id="__span-2-61"><a id="__codelineno-2-61" name="__codelineno-2-61" href="#__codelineno-2-61"></a>│   • ConvTranspose2d(32→3, k=4, s=2) + Tanh        [32x32 → 64x64]           │
+</span><span id="__span-2-62"><a id="__codelineno-2-62" name="__codelineno-2-62" href="#__codelineno-2-62"></a>│   → Per-Object Frames: [B, T, 11, 3, 64, 64]                                │
+</span><span id="__span-2-63"><a id="__codelineno-2-63" name="__codelineno-2-63" href="#__codelineno-2-63"></a>│   ↓                                                                         │
+</span><span id="__span-2-64"><a id="__codelineno-2-64" name="__codelineno-2-64" href="#__codelineno-2-64"></a>│ Object Composition:                                                         │
+</span><span id="__span-2-65"><a id="__codelineno-2-65" name="__codelineno-2-65" href="#__codelineno-2-65"></a>│   • Sum all object frames: Σ(objects)                                       │
+</span><span id="__span-2-66"><a id="__codelineno-2-66" name="__codelineno-2-66" href="#__codelineno-2-66"></a>│   • Normalize: (x + 1) / 2  (from [-1,1] to [0,1])                          │
+</span><span id="__span-2-67"><a id="__codelineno-2-67" name="__codelineno-2-67" href="#__codelineno-2-67"></a>│   • Clamp to [0, 1]                                                         │
+</span><span id="__span-2-68"><a id="__codelineno-2-68" name="__codelineno-2-68" href="#__codelineno-2-68"></a>│   → Reconstructed Video: [B, T, 3, 64, 64]                                  │
+</span><span id="__span-2-69"><a id="__codelineno-2-69" name="__codelineno-2-69" href="#__codelineno-2-69"></a>└─────────────────────────────────────────────────────────────────────────────┘
+</span></code></pre></div>
+<h3 id="setup">Setup</h3>
+<ol>
+<li>
+<p><strong>Clone the repository</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>git<span class="w"> </span>clone<span class="w"> </span>&lt;repository-url&gt;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>CourseProject_2
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Create and activate virtual environment</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">  </span><span class="c1"># On Linux/Mac</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># or</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate<span class="w">  </span><span class="c1"># On Windows</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Install dependencies</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span></code></pre></div></p>
+</li>
+</ol>
+<h2 id="dataset">📦 Dataset</h2>
+<p>This project uses the <strong>MOVi-C dataset</strong> (Multi-Object Video Dataset).</p>
+<h3 id="dataset-setup">Dataset Setup</h3>
+<ol>
+<li>Download MOVi-C dataset from the official source</li>
+<li>Extract to your preferred location</li>
+<li>Update the dataset path in <code>src/CONFIG.py</code>:</li>
+</ol>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>        <span class="s1">&#39;dataset_path&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/movi_c/&#39;</span><span class="p">,</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>        <span class="o">...</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="p">}</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="dataset-structure">Dataset Structure</h3>
+<p>The MOVi-C dataset should have the following structure:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>movi_c/
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>├── train/
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>├── validation/
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>└── test/
+</span></code></pre></div></p>
+<h2 id="usage">💻 Usage</h2>
+<h3 id="training-autoencoder">Training Autoencoder</h3>
+<p>Train the autoencoder with holistic representation:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">cd</span><span class="w"> </span>src
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>python<span class="w"> </span>trainer.py<span class="w"> </span>--ae<span class="w"> </span>--scene_rep<span class="w"> </span>holistic
+</span></code></pre></div>
+<p>Train with object-centric representation:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>python<span class="w"> </span>trainer.py<span class="w"> </span>--ae<span class="w"> </span>--scene_rep<span class="w"> </span>oc
+</span></code></pre></div>
+<h3 id="training-predictor">Training Predictor</h3>
+<p>After training the autoencoder, train the predictor:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python<span class="w"> </span>trainer.py<span class="w"> </span>--predictor<span class="w"> </span>--scene_rep<span class="w"> </span>holistic<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span>--ackpt<span class="w"> </span>experiments/01_Holistic_AE_XL/checkpoints/best_01_Holistic_AE_XL.pth
+</span></code></pre></div>
+<p>For object-centric:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>python<span class="w"> </span>trainer.py<span class="w"> </span>--predictor<span class="w"> </span>--scene_rep<span class="w"> </span>oc<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">    </span>--ackpt<span class="w"> </span>experiments/01_OC_AE_XL_64_Full_CNN/checkpoints/best_01_OC_AE_XL_64_Full_CNN.pth
+</span></code></pre></div>
+<h3 id="inference">Inference</h3>
+<p>Run end-to-end video prediction:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>trainer.py<span class="w"> </span>--inference<span class="w"> </span>--scene_rep<span class="w"> </span>holistic<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">    </span>--ackpt<span class="w"> </span>path/to/autoencoder.pth<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span>--pckpt<span class="w"> </span>path/to/predictor.pth
+</span></code></pre></div>
+<h3 id="command-line-arguments">Command-Line Arguments</h3>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Short</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--ae</code></td>
+<td><code>-a</code></td>
+<td>Enable autoencoder training mode</td>
+</tr>
+<tr>
+<td><code>--predictor</code></td>
+<td><code>-p</code></td>
+<td>Enable predictor training mode</td>
+</tr>
+<tr>
+<td><code>--inference</code></td>
+<td><code>-i</code></td>
+<td>Enable end-to-end inference mode</td>
+</tr>
+<tr>
+<td><code>--ackpt</code></td>
+<td><code>-ac</code></td>
+<td>Path to pretrained autoencoder checkpoint</td>
+</tr>
+<tr>
+<td><code>--pckpt</code></td>
+<td><code>-pc</code></td>
+<td>Path to pretrained predictor checkpoint</td>
+</tr>
+<tr>
+<td><code>--scene_rep</code></td>
+<td><code>-s</code></td>
+<td>Scene representation type: <code>holistic</code> or <code>oc</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="experiments">🔬 Experiments</h2>
+<p>The project includes several experimental configurations:</p>
+<h3 id="autoencoder-experiments">Autoencoder Experiments</h3>
+<ol>
+<li><strong>Holistic Autoencoders</strong>:</li>
+<li><code>01_Holistic_AE_Base</code>: Baseline holistic autoencoder</li>
+<li>
+<p><code>02_Holistic_AE_XL</code>: Extra-large holistic autoencoder</p>
+</li>
+<li>
+<p><strong>Object-Centric Autoencoders</strong>:</p>
+</li>
+<li><code>01_OC_AE_XL_64_Full_CNN</code>: Full CNN-based OC autoencoder</li>
+<li><code>01_OC_AE_XL_64_Mixed_CNN_Decoder_Linear_ENCODER</code>: Mixed architecture</li>
+<li>Various linear and advanced configurations</li>
+</ol>
+<h3 id="predictor-experiments">Predictor Experiments</h3>
+<ol>
+<li><strong>Holistic Predictors</strong>:</li>
+<li><code>02_Holistic_Predictor_XL</code>: Standard predictor</li>
+<li><code>03_Holistic_Predictor_XL</code>: Improved version</li>
+<li>
+<p><code>05_Holistic_Predictor_XL_NoResidual</code>: Without residual connections</p>
+</li>
+<li>
+<p><strong>Object-Centric Predictors</strong>:</p>
+</li>
+<li><code>01_OC_Predictor_XL</code>: Standard OC predictor</li>
+</ol>
+<h3 id="experiment-outputs">Experiment Outputs</h3>
+<p>Each experiment generates:
+- <strong>Checkpoints</strong>: Best and periodic model saves
+- <strong>TensorBoard Logs</strong>: Training curves, visualizations
+- <strong>Configuration Snapshots</strong>: Reproducible experiment configs</p>
+<h2 id="model-checkpoints">💾 Model Checkpoints</h2>
+<p>Pre-trained model checkpoints are available for download:</p>
+<p>🔗 <a href="https://drive.google.com/drive/folders/1cS1CwnZP8BhBA2fGcYH9fJmT7s9OIALP?usp=drive_link">Download Model Checkpoints</a></p>
+<h3 id="available-checkpoints">Available Checkpoints</h3>
+<ul>
+<li>Holistic Autoencoder (Base &amp; XL)</li>
+<li>Object-Centric Autoencoder (Various configurations)</li>
+<li>Holistic Predictor (Multiple versions)</li>
+<li>Object-Centric Predictor</li>
+</ul>
+<h2 id="configuration">⚙️ Configuration</h2>
+<p>The main configuration file is <code>src/CONFIG.py</code>. Key parameters:</p>
+<h3 id="data-configuration">Data Configuration</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    <span class="s1">&#39;dataset_path&#39;</span><span class="p">:</span> <span class="s1">&#39;/path/to/movi_c/&#39;</span><span class="p">,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="s1">&#39;patch_size&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="s1">&#39;max_objects&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="s1">&#39;num_workers&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="s1">&#39;image_height&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    <span class="s1">&#39;image_width&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="training-configuration">Training Configuration</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="s1">&#39;training&#39;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="s1">&#39;num_epochs&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="s1">&#39;warmup_epochs&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="s1">&#39;early_stopping_patience&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="s1">&#39;model_name&#39;</span><span class="p">:</span> <span class="s1">&#39;01_OC_AE_XL_64_Full_CNN&#39;</span><span class="p">,</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="s1">&#39;lr&#39;</span><span class="p">:</span> <span class="mf">4e-4</span><span class="p">,</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="s1">&#39;save_frequency&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>    <span class="s1">&#39;use_scheduler&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="s1">&#39;use_early_stopping&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>    <span class="s1">&#39;use_transforms&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="s1">&#39;use_amp&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Mixed precision training</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="model-configuration">Model Configuration</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="s1">&#39;vit_cfg&#39;</span><span class="p">:</span> <span class="p">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    <span class="s1">&#39;encoder_embed_dim&#39;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    <span class="s1">&#39;decoder_embed_dim&#39;</span><span class="p">:</span> <span class="mi">192</span><span class="p">,</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    <span class="s1">&#39;num_heads&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="s1">&#39;mlp_size&#39;</span><span class="p">:</span> <span class="mi">1024</span><span class="p">,</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="s1">&#39;encoder_depth&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="s1">&#39;decoder_depth&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    <span class="s1">&#39;predictor_depth&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    <span class="s1">&#39;num_preds&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>    <span class="s1">&#39;predictor_window_size&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>    <span class="s1">&#39;use_masks&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    <span class="s1">&#39;use_bboxes&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    <span class="s1">&#39;residual&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="results">📊 Results</h2>
+<h3 id="reconstruction-quality">Reconstruction Quality</h3>
+<p>The models achieve high-quality video frame reconstruction:</p>
+<ul>
+<li><strong>Holistic Models</strong>: Capture global scene structure effectively</li>
+<li><strong>Object-Centric Models</strong>: Better at preserving individual object details</li>
+</ul>
+<h3 id="visualization">Visualization</h3>
+<p>View results in the Jupyter notebook:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="nb">cd</span><span class="w"> </span>src
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>jupyter<span class="w"> </span>lab<span class="w"> </span>ocvp.ipynb
+</span></code></pre></div>
+<p>The notebook includes:
+- Training/validation loss curves
+- Reconstruction visualizations
+- Prediction quality analysis
+- Comparison between holistic and object-centric approaches</p>
+<h3 id="tensorboard">TensorBoard</h3>
+<p>Monitor training progress:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>tensorboard<span class="w"> </span>--logdir<span class="w"> </span>src/experiments/<span class="o">[</span>experiment_name<span class="o">]</span>/tboard_logs
+</span></code></pre></div>
+<h2 id="citation">🎓 Citation</h2>
+<p>If you use this code in your research, please cite:</p>
+<div class="language-bibtex highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="nc">@misc</span><span class="p">{</span><span class="nl">video_prediction_ocvp</span><span class="p">,</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="w">  </span><span class="na">title</span><span class="p">=</span><span class="s">{Evaluating Image Representations for Video Prediction}</span><span class="p">,</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="na">author</span><span class="p">=</span><span class="s">{Your Name}</span><span class="p">,</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="na">year</span><span class="p">=</span><span class="s">{2025}</span><span class="p">,</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="na">howpublished</span><span class="p">=</span><span class="s">{\url{https://github.com/your-repo}}</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<hr />
+<h2 id="support">💬 Support</h2>
+<p>If you found this project helpful, you can support my work by buying me a coffee or via paypal!  </p>
+<p><a href="https://buymeacoffee.com/amirhosseinsoltani"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20me%20a%20coffee-orange?logo=buy-me-a-coffee&amp;style=for-the-badge" /></a></p>
+<p><a href="https://paypal.me/thesoltanic"><img alt="PayPal" src="https://img.shields.io/badge/Donate%20with-PayPal-blue?logo=paypal&amp;style=for-the-badge" /></a></p>
+<hr />
+<h2 id="location">Location</h2>
+<p>The complete project documentation, code, and notebooks are located in:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>src/CourseProject/
+</span></code></pre></div></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
