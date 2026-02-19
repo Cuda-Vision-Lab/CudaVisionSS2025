@@ -1,5 +1,5 @@
 # 1. Use an NVIDIA CUDA base image with Python 3
-FROM nvidia/cuda:12.1.1-devel-ubuntu22.04
+FROM python:3.11-slim-bullseye
 
 # 2. Set environment variables to prevent interactive prompts during install
 ENV DEBIAN_FRONTEND=noninteractive
