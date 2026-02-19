@@ -1,4 +1,5 @@
-name: ci
+name: Deploy GitHub Pages
+
 on:
   push:
     branches:
